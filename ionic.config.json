@@ -1,0 +1,7 @@
+{
+  "name": "realtime-chess-frontend-ionic",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
