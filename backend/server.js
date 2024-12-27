@@ -69,7 +69,12 @@ wss.on('connection', (ws) => {
             const opponent = game.player1.id === playerId ? game.player2 : game.player1;
 
             try {
-                opponent.socket.send(JSON.stringify({ type: 'move', move }));
+                if (opponent.socket === null) {
+                    ws.send(JSON.stringify({ type: 'wait' }));
+                } else {
+                    opponent.socket.send(JSON.stringify({ type: 'move', move }));
+                    ws.send(JSON.stringify({ type: 'success' }));
+                }
             } catch (error) {
                 console.log('Opponent not connected');
             } finally {
