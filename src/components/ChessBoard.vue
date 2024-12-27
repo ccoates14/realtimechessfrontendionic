@@ -26,6 +26,8 @@
 
 <script>
 import ChessPiece from '@/components/ChessPiece.vue';
+import ChessBoard from '../../chessEngine/ChessBoard.ts';
+
 export default {
     name: 'ChessBoard',
     data: () => ({
@@ -56,7 +58,8 @@ export default {
         cellSelected: {
             row: -1,
             col: -1
-        }
+        },
+        chessBoard: new ChessBoard()
     }),
     methods: {
         getCellColor(row, col) {
@@ -81,6 +84,15 @@ export default {
             //if so then lets move the piece
 
             if (this.cellSelected.row !== -1 && this.cellSelected.col !== -1) {
+                const startPos = String.fromCharCode(this.cellSelected.col + 96) + '' + this.cellSelected.row;
+                const endPos = String.fromCharCode(col + 96) + '' + row;
+
+                if (!this.chessBoard.movePiece(startPos, endPos)) {
+                    this.cellSelected.row = -1;
+                    this.cellSelected.col = -1;
+                    return;
+                }
+
                 //move the piece
                 this.board[row - 1][col - 1] = this.board[this.cellSelected.row - 1][this.cellSelected.col - 1];
                 this.board[this.cellSelected.row - 1][this.cellSelected.col - 1] = 0;
