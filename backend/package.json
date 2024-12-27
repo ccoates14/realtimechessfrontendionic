@@ -1,0 +1,26 @@
+{
+    "name": "player-queue-server",
+    "version": "1.0.0",
+    "description": "A basic Node.js server with Express for queuing players and WebSocket for real-time communication.",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "nodemon server.js"
+    },
+    "keywords": [
+        "express",
+        "websocket",
+        "queue",
+        "nodejs"
+    ],
+    "author": "Your Name",
+    "license": "MIT",
+    "dependencies": {
+        "express": "^4.21.2",
+        "uuid": "^11.0.3",
+        "ws": "^8.18.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.1"
+    }
+}
