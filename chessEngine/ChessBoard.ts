@@ -60,8 +60,6 @@ export default class ChessBoard {
       const [startFile, startRank] = this.parsePosition(start);
       const [endFile, endRank] = this.parsePosition(end);
 
-      console.log(`??? ${start} to ${end}`);
-
       const startPiece = this.board[startRank][startFile];
       const endPiece = this.board[endRank][endFile];
 

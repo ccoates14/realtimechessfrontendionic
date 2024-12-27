@@ -71,8 +71,6 @@ export default {
         handlePieceDragged(event) {
             const { cell, piece } = event;
 
-            console.log(`Piece dropped on cell: ${cell.x}-${cell.y}  Original cell: ${cell.originalX}-${cell.originalY}`);
-
             this.board[cell.originalY][cell.originalX] = 0;
 
             this.board[cell.y][cell.x] =
