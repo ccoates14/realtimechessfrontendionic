@@ -2,7 +2,7 @@
   <ion-page>
     <ion-header :translucent="true">
       <ion-toolbar>
-        <ion-title>Blank</ion-title>
+        <ion-title>Realtime Chess</ion-title>
       </ion-toolbar>
     </ion-header>
 
@@ -14,15 +14,15 @@
       </ion-header>
 
       <div id="container">
-        <strong>Ready to create an app?</strong>
-        <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+        <chess-board class="chess-board"/>
       </div>
     </ion-content>
   </ion-page>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
+import ChessBoard from '@/components/ChessBoard.vue';
 </script>
 
 <style scoped>
@@ -52,5 +52,9 @@ import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue
 
 #container a {
   text-decoration: none;
+}
+
+.chess-board {
+  margin-top: 2.5%;
 }
 </style>
