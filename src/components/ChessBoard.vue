@@ -1,9 +1,24 @@
 <template>
-    <div class="chess-board">
-        <div v-for="row in 8" :key="row" class="row">
-            <div v-for="col in 8" :key="col" :class="['cell', getCellColor(row, col)]">
-                <ChessPiece v-if="board[row - 1][col - 1] != 0" :name="piecesByNumbers[board[row - 1][col - 1]]" 
-                :teamColor="getTeamColor(board[row - 1][col - 1])" class="centered-piece" @pieceDropped="handlePieceDragged"/>
+    <div class="chess-board-wrapper">
+        <div class="row-labels">
+            <div v-for="row in 8" :key="'row-' + row" class="row-label">{{ 9 - row }}</div>
+        </div>
+        <div>
+            <div class="chess-board">
+                <div v-for="row in 8" :key="row" class="row">
+                    <div v-for="col in 8" :key="col" :class="['cell', getCellColor(row, col), cellSelected.row == row && cellSelected.col == col ? 'cell-selected' : '' ]" @click="cellClicked(row, col)">
+                        <ChessPiece
+                            v-if="board[row - 1][col - 1] != 0"
+                            :name="piecesByNumbers[board[row - 1][col - 1]]"
+                            :teamColor="getTeamColor(board[row - 1][col - 1])"
+                            class="centered-piece"
+                            @pieceDropped="handlePieceDragged"
+                        />
+                    </div>
+                </div>
+            </div>
+            <div class="col-labels">
+                <div v-for="col in 8" :key="'col-' + col" class="col-label">{{ String.fromCharCode(64 + col) }}</div>
             </div>
         </div>
     </div>
@@ -37,7 +52,11 @@ export default {
             [0, 0, 0, 0, 0, 0, 0, 0],
             [12, 12, 12, 12, 12, 12, 12, 12],
             [7, 8, 9, 10, 11, 9, 8, 7]
-        ]
+        ],
+        cellSelected: {
+            row: -1,
+            col: -1
+        }
     }),
     methods: {
         getCellColor(row, col) {
@@ -55,8 +74,24 @@ export default {
 
             this.board[cell.y][cell.x] =
                 parseInt(Object.keys(this.piecesByNumbers).find(key => this.piecesByNumbers[key] === piece.name)) + (piece.teamColor === 'white' ? 6 : 0);
+        },
+        cellClicked(row, col) {
+            //once this is clicked
+            // check if there is already a cell selected
+            //if so then lets move the piece
 
-            console.log(this.board);
+            if (this.cellSelected.row !== -1 && this.cellSelected.col !== -1) {
+                //move the piece
+                this.board[row - 1][col - 1] = this.board[this.cellSelected.row - 1][this.cellSelected.col - 1];
+                this.board[this.cellSelected.row - 1][this.cellSelected.col - 1] = 0;
+
+                this.cellSelected.row = -1;
+                this.cellSelected.col = -1;
+            } else {
+                //select the cell
+                this.cellSelected.row = row;
+                this.cellSelected.col = col;
+            }
         }
     },
     components: {
@@ -102,4 +137,46 @@ export default {
     width: 100%;
     height: 100%;
 }
+
+.chess-board-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.row-labels {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+.row-label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.col-labels {
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+}
+
+.col-label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.cell-selected {
+    border: 2px solid red;
+}
+
 </style>
