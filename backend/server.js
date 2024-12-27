@@ -39,6 +39,11 @@ app.get('/queue', (req, res) => {
     }
 });
 
+//get number of players in queue
+app.get('/queue/length', (req, res) => {
+    res.json({ length: playerQueue.length });
+});
+
 // Create HTTP server
 const server = http.createServer(app);
 
