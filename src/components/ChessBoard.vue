@@ -61,7 +61,6 @@ export default {
         },
         chessBoard: new ChessBoard(),
         playerId: null,
-        queueStatus: 'Waiting for connection',
         gameId: null,
         socket: null,
         winnerColor: null,
@@ -128,40 +127,44 @@ export default {
                     this.socket.close();
                 } else {
                     if (this.chessBoard.isKingInCheckMate(this.chessBoard.getKing(this.playerColor))) {
-                        this.queueStatus = 'Game Over';
+                        this.$emit('queueStatus', 'Game Over! You Lost!');
                         this.sendMessage('done');
                         this.socket.close();
                     }
                 }
             } else if (data.type === 'done') {
-                this.queueStatus = 'Game Over! ';
+                let queueStatus = 'Game Over! ';
 
                 if (this.chessBoard.isKingInCheckMate(this.chessBoard.getKing(this.playerColor))) {
-                    this.queueStatus += 'You lost!';
+                    queueStatus += 'You lost!';
                 } else {
-                    this.queueStatus += 'You won!';
+                    queueStatus += 'You won!';
                 }
+
+                this.$emit('queueStatus', queueStatus);
             }
 
 
         },
         sendMessage(move) {
-            // this.socket.send('Hello from client');
-
-            // we either send the player move
+            this.socket.send(JSON.stringify({
+                gameId: this.gameId,
+                playerId: this.playerId,
+                move: move
+            }));
         },
         connectToQueue() {
             const queryParam = `?playerId=${this.playerId}`;
 
             axios.get(`http://localhost:3000/queue${queryParam}`).then((response) => {
-                console.log(response);
+                console.log(response);  
                 if (response.data.status == 'wait') {
-                    this.queueStatus = 'Waiting for opponent';
+                    this.$emit('queueStatus', 'Waiting for opponent');
                     setTimeout(() => {
                         this.connectToQueue();
                     }, 1000);
                 } else if (response.data.status == 'success') {
-                    this.queueStatus = 'Game started';
+                    this.$emit('queueStatus', 'Game started');
                     this.gameId = response.data.gameId;
 
                     if (response.data.player1.id == this.playerId) {
@@ -184,7 +187,7 @@ export default {
                         console.log('WebSocket connection closed');
                     });
                 } else {
-                    this.queueStatus = 'Error';
+                    this.$emit('queueStatus', 'Error');
                     console.log(response);
                 }
             }).catch((error) => {
@@ -201,7 +204,7 @@ export default {
         axios.put('http://localhost:3000/queue').then((response) => {
             console.log(response);
             this.playerId = response.data.playerId;
-            this.queueStatus = 'Connected, adding to queue';
+            this.$emit('queueStatus', 'Connected, adding to queue');
 
             this.connectToQueue();
         }).catch((error) => {
@@ -214,6 +217,9 @@ export default {
             this.socket.close();
         }
     },
+    watch() {
+
+    }
 }
 </script>
 
@@ -266,6 +272,17 @@ export default {
     flex-direction: column;
     justify-content: center;
     margin-right: 10px;
+}
+
+.queue-status {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    font-size: 18px;
+    font-weight: bold;
+    width: 100%;
+    text-align: center;
 }
 
 .row-label {

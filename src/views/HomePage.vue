@@ -3,6 +3,9 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-title>Realtime Chess</ion-title>
+        <div slot="end">
+          <strong>{{ queueStatus }}</strong>
+        </div>
       </ion-toolbar>
     </ion-header>
 
@@ -14,15 +17,32 @@
       </ion-header>
 
       <div id="container">
-        <chess-board class="chess-board"/>
+        <chess-board class="chess-board" @queueStatus="queueStatusHandler"/>
       </div>
     </ion-content>
   </ion-page>
 </template>
 
-<script setup>
+<script>
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
 import ChessBoard from '@/components/ChessBoard.vue';
+
+export default {
+  components: {
+    ChessBoard
+  },
+  data() {
+    return {
+      queueStatus: 'Waiting for server to connect...'
+    }
+  },
+  methods: {
+    queueStatusHandler(status) {
+      this.queueStatus = status;
+    }
+  }
+}
+
 </script>
 
 <style scoped>
