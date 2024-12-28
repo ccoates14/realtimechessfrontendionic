@@ -22,18 +22,38 @@ app.put('/queue', (req, res) => {
 // get, request for a player to be matched with
 app.get('/queue', (req, res) => {
     if (playerQueue.length >= 2) {
-        const player1 = playerQueue.shift();
-        const player2 = playerQueue.shift();
-        playersInQueue.delete(player1);
-        playersInQueue.delete(player2);
+        const playerId = req.query.playerId;
+
+        if (!playersInQueue.has(playerId)) {
+            res.json({ status: 'error', message: 'Invalid player ID' });
+            return;
+        }
+
+        let mainPlayer = null;
+        let opponent = null;
+
+        while (mainPlayer == null || opponent == null) {
+            let currentPlayer = playerQueue.shift();
+
+            if (currentPlayer == playerId) {
+                mainPlayer = currentPlayer
+            } else if (opponent == null) {
+                opponent = currentPlayer
+            } else {
+                playerQueue.push(currentPlayer);
+            }
+        }
+
+        playersInQueue.delete(mainPlayer);
+        playersInQueue.delete(opponent);
 
         const gameId = uuidv4();
         games.set(gameId, { 
-            player1: { id: player1, color: 'white', socket: null },
-            player2: { id: player2, color: 'black', socket: null },
+            player1: { id: mainPlayer, color: 'white', socket: null },
+            player2: { id: opponent, color: 'black', socket: null },
         });
 
-        res.json({ status: 'success', gameId });
+        res.json({ status: 'success', gameId: gameId });
     } else {
         res.json({ status: 'wait' });
     }
@@ -62,6 +82,7 @@ wss.on('connection', (ws) => {
         const gameId = body.gameId;
         const playerId = body.playerId;
         const game = games.get(gameId);
+        const move = body.move;
 
         if (body.type === 'join') {
             if (game.player1.id === playerId) {

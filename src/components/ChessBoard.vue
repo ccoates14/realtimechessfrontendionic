@@ -12,7 +12,6 @@
                             :name="piecesByNumbers[board[row - 1][col - 1]]"
                             :teamColor="getTeamColor(board[row - 1][col - 1])"
                             class="centered-piece"
-                            @pieceDropped="handlePieceDragged"
                         />
                     </div>
                 </div>
@@ -25,6 +24,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 import ChessPiece from '@/components/ChessPiece.vue';
 import ChessBoard from '../../chessEngine/ChessBoard.ts';
 
@@ -59,7 +59,13 @@ export default {
             row: -1,
             col: -1
         },
-        chessBoard: new ChessBoard()
+        chessBoard: new ChessBoard(),
+        playerId: null,
+        queueStatus: 'Waiting for connection',
+        gameId: null,
+        socket: null,
+        winnerColor: null,
+        playerColor: null
     }),
     methods: {
         getCellColor(row, col) {
@@ -67,14 +73,6 @@ export default {
         },
         getTeamColor(n) {
             return n < 7 ? 'black' : 'white';
-        },
-        handlePieceDragged(event) {
-            const { cell, piece } = event;
-
-            this.board[cell.originalY][cell.originalX] = 0;
-
-            this.board[cell.y][cell.x] =
-                parseInt(Object.keys(this.piecesByNumbers).find(key => this.piecesByNumbers[key] === piece.name)) + (piece.teamColor === 'white' ? 6 : 0);
         },
         cellClicked(row, col) {
             //once this is clicked
@@ -91,6 +89,8 @@ export default {
                     return;
                 }
 
+                this.sendMessage(startPos + endPos);
+
                 //move the piece
                 this.board[row - 1][col - 1] = this.board[this.cellSelected.row - 1][this.cellSelected.col - 1];
                 this.board[this.cellSelected.row - 1][this.cellSelected.col - 1] = 0;
@@ -102,11 +102,118 @@ export default {
                 this.cellSelected.row = row;
                 this.cellSelected.col = col;
             }
-        }
+        },
+        onMessage(event) {
+            // this.serverMessage = event.data;
+            // we are either receiving a game move from the opponent or the game is over
+            const data = JSON.parse(event.data);
+            console.log(data);
+
+            if (data.type === 'move') {
+                const startPos = data.move.substring(0, 2);
+                const endPos = data.move.substring(2, 4);
+
+                const startCol = startPos.charCodeAt(0) - 96;
+                const startRow = parseInt(startPos[1]);
+
+                const endCol = endPos.charCodeAt(0) - 96;
+                const endRow = parseInt(endPos[1]);
+
+                this.board[endRow - 1][endCol - 1] = this.board[startRow - 1][startCol - 1];
+                this.board[startRow - 1][startCol - 1] = 0;
+
+                //upon updating the move we need to check if the game is over
+                if (!this.chessBoard.movePiece(startPos, endPos)) {
+                    console.error('Invalid move');
+                    this.socket.close();
+                } else {
+                    if (this.chessBoard.isKingInCheckMate(this.chessBoard.getKing(this.playerColor))) {
+                        this.queueStatus = 'Game Over';
+                        this.sendMessage('done');
+                        this.socket.close();
+                    }
+                }
+            } else if (data.type === 'done') {
+                this.queueStatus = 'Game Over! ';
+
+                if (this.chessBoard.isKingInCheckMate(this.chessBoard.getKing(this.playerColor))) {
+                    this.queueStatus += 'You lost!';
+                } else {
+                    this.queueStatus += 'You won!';
+                }
+            }
+
+
+        },
+        sendMessage(move) {
+            // this.socket.send('Hello from client');
+
+            // we either send the player move
+        },
+        connectToQueue() {
+            const queryParam = `?playerId=${this.playerId}`;
+
+            axios.get(`http://localhost:3000/queue${queryParam}`).then((response) => {
+                console.log(response);
+                if (response.data.status == 'wait') {
+                    this.queueStatus = 'Waiting for opponent';
+                    setTimeout(() => {
+                        this.connectToQueue();
+                    }, 1000);
+                } else if (response.data.status == 'success') {
+                    this.queueStatus = 'Game started';
+                    this.gameId = response.data.gameId;
+
+                    if (response.data.player1.id == this.playerId) {
+                        this.playerColor = response.data.player1.color;
+                    } else {
+                        this.playerColor = response.data.player2.color;
+                    }
+
+                    this.socket = new WebSocket(`ws://localhost:3000/`);
+
+                    this.socket.addEventListener('message', this.onMessage);
+
+                    // Handle WebSocket errors
+                    this.socket.addEventListener('error', (error) => {
+                        console.error('WebSocket Error:', error);
+                    });
+
+                    // Handle WebSocket connection close
+                    this.socket.addEventListener('close', () => {
+                        console.log('WebSocket connection closed');
+                    });
+                } else {
+                    this.queueStatus = 'Error';
+                    console.log(response);
+                }
+            }).catch((error) => {
+                console.log(error);
+            });
+        },
+
     },
     components: {
         ChessPiece
-    }
+    },
+    mounted() {
+        // connect to the server and queue for game
+        axios.put('http://localhost:3000/queue').then((response) => {
+            console.log(response);
+            this.playerId = response.data.playerId;
+            this.queueStatus = 'Connected, adding to queue';
+
+            this.connectToQueue();
+        }).catch((error) => {
+            console.log(error);
+        });
+    },
+    beforeDestroy() {
+        // Close the WebSocket connection before the component is destroyed
+        if (this.socket) {
+            this.socket.close();
+        }
+    },
 }
 </script>
 
