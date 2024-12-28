@@ -8,53 +8,73 @@ const port = 3000;
 
 // In-memory player queue
 const playerQueue = [];
-const playersInQueue = new Set();
+const playersInQueue = new Map();
+const playersInGame = new Map();
 const games = new Map();
+let queueBeingCleaned = false;
+
+//later we can make it so it removes dead queue
 
 // put, add players to queue and return status and new player id
 app.put('/queue', (req, res) => {
+    //I think this method probably is fine regardless if the queue is being cleaned
     const playerId = uuidv4();
     playerQueue.push(playerId);
-    playersInQueue.add(playerId);
+    playersInQueue.set(playerId, new Date());
     res.json({ status: 'success', playerId });
 });
 
 // get, request for a player to be matched with
 app.get('/queue', (req, res) => {
-    if (playerQueue.length >= 2) {
-        const playerId = req.query.playerId;
+    const playerId = req.query.playerId;
+    let wait = true
 
-        if (!playersInQueue.has(playerId)) {
-            res.json({ status: 'error', message: 'Invalid player ID' });
-            return;
-        }
-
-        let mainPlayer = null;
-        let opponent = null;
-
-        while (mainPlayer == null || opponent == null) {
-            let currentPlayer = playerQueue.shift();
-
-            if (currentPlayer == playerId) {
-                mainPlayer = currentPlayer
-            } else if (opponent == null) {
-                opponent = currentPlayer
-            } else {
-                playerQueue.push(currentPlayer);
+    if (!queueBeingCleaned) {
+        if (playersInGame.has(playerId)) {
+            const gameId = playersInGame.get(playerId);
+    
+            wait = false
+            res.json({ status: 'success', gameId: gameId });
+        } else if (playerQueue.length >= 2) {
+            if (!playersInQueue.has(playerId)) {
+                res.json({ status: 'error', message: 'Invalid player ID' });
+                return;
             }
+    
+            let mainPlayer = null;
+            let opponent = null;
+    
+            while (mainPlayer == null || opponent == null) {
+                let currentPlayer = playerQueue.shift();
+    
+                if (currentPlayer == playerId) {
+                    mainPlayer = currentPlayer
+                } else if (opponent == null) {
+                    opponent = currentPlayer
+                } else {
+                    playerQueue.push(currentPlayer);
+                }
+            }
+    
+            const gameId = uuidv4();
+            games.set(gameId, { 
+                player1: { id: mainPlayer, color: 'white', socket: null },
+                player2: { id: opponent, color: 'black', socket: null },
+            });
+
+            playersInQueue.delete(mainPlayer);
+            playersInQueue.delete(opponent);
+    
+            playersInGame.set(mainPlayer, gameId);
+            playersInGame.set(opponent, gameId);
+    
+            wait = false
+            res.json({ status: 'success', gameId: gameId });
         }
+    }
 
-        playersInQueue.delete(mainPlayer);
-        playersInQueue.delete(opponent);
-
-        const gameId = uuidv4();
-        games.set(gameId, { 
-            player1: { id: mainPlayer, color: 'white', socket: null },
-            player2: { id: opponent, color: 'black', socket: null },
-        });
-
-        res.json({ status: 'success', gameId: gameId });
-    } else {
+    if (wait) {
+        playersInQueue.set(playerId, new Date());
         res.json({ status: 'wait' });
     }
 });
@@ -92,6 +112,11 @@ wss.on('connection', (ws) => {
             } else {
                 console.log('Invalid player ID');
             }
+
+            if (game.player1.socket !== null && game.player2.socket !== null) {
+                game.player1.socket.send(JSON.stringify({ type: 'start', color: game.player1.color }));
+                game.player2.socket.send(JSON.stringify({ type: 'start', color: game.player2.color }));
+            }
         } else {
             const opponent = game.player1.id === playerId ? game.player2 : game.player1;
 
@@ -107,6 +132,8 @@ wss.on('connection', (ws) => {
             } finally {
                 if (move == 'done') {
                     games.delete(gameId);
+                    playersInGame.delete(game.player1.id);
+                    playersInGame.delete(game.player2.id);
                 }
             }
         }
@@ -122,3 +149,58 @@ server.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
     console.log(`WebSocket server listening on ws://localhost:${port}`);
 });
+
+function cleanQueue() {
+    queueBeingCleaned = true;
+    console.log('Cleaning queue');
+    console.log(playerQueue);
+    console.log(playersInQueue);
+    console.log(playersInGame);
+    console.log(games);
+
+    const MAX_QUEUE_TIME_SECONDS = 5 * 60;
+    //if the player has been sitting in the queue for more then the max time then boot them
+    const playerQueueToDelete = [];
+    const gamesToDelete = [];
+
+    for (let i = 0; i < playerQueue.length; i++) {
+        const playerId = playerQueue[i];
+        const secondsInQueue = getSecondsInQueue(playerId);
+
+        if (secondsInQueue >= MAX_QUEUE_TIME_SECONDS) {
+            //remove player
+            playerQueueToDelete.push(playerId);
+        }
+    }
+
+    //for each game
+    games.forEach((game, gameId) => {
+        if (game.player1.socket === null && game.player2.socket === null) {
+            gamesToDelete.push(gameId);
+        }
+    });
+
+    playerQueueToDelete.forEach(playerId => {
+        playerQueue.splice(playerQueue.indexOf(playerId), 1);
+        playersInQueue.delete(playerId);
+    });
+
+    gamesToDelete.forEach(gameId => {
+        const game = games.get(gameId);
+        games.delete(gameId);
+        playersInGame.delete(game.player1.id);
+        playersInGame.delete(game.player2.id);
+    });
+
+    queueBeingCleaned = false;
+    console.log('Queue cleaned');
+}
+
+function getSecondsInQueue(playerId) {
+    return (new Date() - playersInQueue.get(playerId)) / 1000;
+}
+
+
+const FIVE_MINUTES = 5 * 60 * 1000;
+
+setInterval(cleanQueue, FIVE_MINUTES);

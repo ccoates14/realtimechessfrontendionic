@@ -64,8 +64,9 @@ export default {
         gameId: null,
         socket: null,
         winnerColor: null,
-        playerColor: null
-    }),
+        playerColor: null,
+        otherPlayerConnected: false
+    }), 
     methods: {
         getCellColor(row, col) {
             return (row + col) % 2 === 0 ? 'white-cell' : 'black-cell';
@@ -77,6 +78,10 @@ export default {
             //once this is clicked
             // check if there is already a cell selected
             //if so then lets move the piece
+            if (this.getTeamColor(this.board[row - 1][col - 1]) !== this.playerColor || !this.otherPlayerConnected) {
+                this.cellSelected.row = this.cellSelected.col = -1;
+                return;
+            }
 
             if (this.cellSelected.row !== -1 && this.cellSelected.col !== -1) {
                 const startPos = String.fromCharCode(this.cellSelected.col + 96) + '' + this.cellSelected.row;
@@ -102,13 +107,25 @@ export default {
                 this.cellSelected.col = col;
             }
         },
+        join() {
+            this.socket.send(JSON.stringify({
+                type: 'join',
+                gameId: this.gameId,
+                playerId: this.playerId
+            }));
+
+            this.$emit('queueStatus', 'Game Started');
+        },  
         onMessage(event) {
             // this.serverMessage = event.data;
             // we are either receiving a game move from the opponent or the game is over
             const data = JSON.parse(event.data);
             console.log(data);
 
-            if (data.type === 'move') {
+            if (data.type === 'start') {
+                this.otherPlayerConnected = true;
+                this.$emit('queueStatus', 'Game Started');
+            } else if (data.type === 'move') {
                 const startPos = data.move.substring(0, 2);
                 const endPos = data.move.substring(2, 4);
 
@@ -150,7 +167,8 @@ export default {
             this.socket.send(JSON.stringify({
                 gameId: this.gameId,
                 playerId: this.playerId,
-                move: move
+                move: move,
+                type: 'move'
             }));
         },
         connectToQueue() {
@@ -162,9 +180,9 @@ export default {
                     this.$emit('queueStatus', 'Waiting for opponent');
                     setTimeout(() => {
                         this.connectToQueue();
-                    }, 1000);
+                    }, 500);
                 } else if (response.data.status == 'success') {
-                    this.$emit('queueStatus', 'Game started');
+                    this.$emit('queueStatus', 'Game Almost Ready');
                     this.gameId = response.data.gameId;
 
                     if (response.data.player1.id == this.playerId) {
@@ -184,8 +202,11 @@ export default {
 
                     // Handle WebSocket connection close
                     this.socket.addEventListener('close', () => {
+                        this.$emit('queueStatus', 'Game Closed.....');
                         console.log('WebSocket connection closed');
                     });
+
+                    this.join();
                 } else {
                     this.$emit('queueStatus', 'Error');
                     console.log(response);
