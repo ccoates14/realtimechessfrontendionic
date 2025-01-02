@@ -11,6 +11,7 @@ const playerQueue = [];
 const playersInQueue = new Map();
 const playersInGame = new Map();
 const games = new Map();
+const socketsToGame = new Map();
 let queueBeingCleaned = false;
 
 //later we can make it so it removes dead queue
@@ -103,6 +104,7 @@ const wss = new WebSocket.Server({ server });
 // WebSocket connection logic
 wss.on('connection', (ws) => {
     console.log('New WebSocket connection established.');
+    const socketHash = ws._socket.remoteAddress + ':' + ws._socket.remotePort;
 
     ws.on('message', (message) => {
         console.log(`Received: ${message}`);
@@ -116,8 +118,10 @@ wss.on('connection', (ws) => {
         if (body.type === 'join') {
             if (game.player1.id === playerId) {
                 game.player1.socket = ws;
+                socketsToGame.set(socketHash, gameId);
             } else if (game.player2.id === playerId) {
                 game.player2.socket = ws;
+                socketsToGame.set(socketHash, gameId);
             } else {
                 console.log('Invalid player ID');
             }
@@ -150,6 +154,27 @@ wss.on('connection', (ws) => {
 
     ws.on('close', () => {
         console.log('WebSocket connection closed.');
+
+        const gameId = socketsToGame.get(socketHash);
+
+        if (gameId !== undefined) {
+            const game = games.get(gameId);
+
+            if (game === undefined) {
+                return;
+            }
+
+            const opponent = game.player1.socket === ws ? game.player2 : game.player1;
+
+            if (opponent.socket !== null) {
+                opponent.socket.send(JSON.stringify({ type: 'disconnected' }));
+            }
+
+            socketsToGame.delete(socketHash);
+            games.delete(gameId);
+            playersInGame.delete(game.player1.id);
+            playersInGame.delete(game.player2.id);
+        }
     });
 });
 

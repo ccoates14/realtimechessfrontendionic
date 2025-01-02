@@ -67,7 +67,8 @@ export default {
         winnerColor: null,
         playerColor: null,
         otherPlayerConnected: false,
-        connectionState: ConnectionState.GET_CONNECTION
+        connectionState: ConnectionState.GET_CONNECTION,
+        gameDisconnected: false
     }), 
     methods: {
         getCellColor(row, col) {
@@ -80,7 +81,8 @@ export default {
             //once this is clicked
             // check if there is already a cell selected
             //if so then lets move the piece
-            if (this.getTeamColor(this.board[row - 1][col - 1]) !== this.playerColor || !this.otherPlayerConnected) {
+            if (this.getTeamColor(this.board[row - 1][col - 1]) !== this.playerColor || !this.otherPlayerConnected || this.gameDisconnected) {
+                console.log('early return');
                 this.cellSelected.row = this.cellSelected.col = -1;
                 return;
             }
@@ -90,6 +92,7 @@ export default {
                 const endPos = String.fromCharCode(col + 96) + '' + row;
 
                 if (!this.chessBoard.movePiece(startPos, endPos)) {
+                    console.error('Invalid move');
                     this.cellSelected.row = -1;
                     this.cellSelected.col = -1;
                     return;
@@ -101,12 +104,14 @@ export default {
                 this.board[row - 1][col - 1] = this.board[this.cellSelected.row - 1][this.cellSelected.col - 1];
                 this.board[this.cellSelected.row - 1][this.cellSelected.col - 1] = 0;
 
+                console.log('moved piece from ', startPos, ' to ', endPos);
                 this.cellSelected.row = -1;
                 this.cellSelected.col = -1;
             } else {
                 //select the cell
                 this.cellSelected.row = row;
                 this.cellSelected.col = col;
+                console.log('selected cell ', row, col);
             }
         },
         join() {
@@ -175,6 +180,9 @@ export default {
                 }
 
                 this.$emit('queueStatus', queueStatus);
+            } else if (data.type === 'disconnected') {
+                this.gameDisconnected = true;
+                this.$emit('queueStatus', 'Game Closed');
             }
 
 
