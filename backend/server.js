@@ -160,6 +160,10 @@ server.listen(port, () => {
 });
 
 function cleanQueue() {
+    if (queueBeingCleaned || playerQueue.length === 0) {
+        return;
+    }
+
     queueBeingCleaned = true;
     console.log('Cleaning queue');
     console.log(playerQueue);
