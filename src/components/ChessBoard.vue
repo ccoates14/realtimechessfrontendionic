@@ -27,7 +27,7 @@
 import axios from 'axios';
 import ChessPiece from '@/components/ChessPiece.vue';
 import ChessBoard from '../../chessEngine/ChessBoard.ts';
-import {ConnectionState} from '../ConnectionState.js'
+import ConnectionState from '../ConnectionState.js'
 
 export default {
     name: 'ChessBoard',
