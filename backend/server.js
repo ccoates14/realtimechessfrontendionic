@@ -32,21 +32,27 @@ app.get('/queue', (req, res) => {
     if (!queueBeingCleaned) {
         if (playersInGame.has(playerId)) {
             const gameId = playersInGame.get(playerId);
-    
+            const game = games.get(gameId);
+            const player1 = game.player1.id;
+            const player2 = game.player2.id;
+
             wait = false
-            res.json({ status: 'success', gameId: gameId });
+            res.json({
+                status: 'success', gameId: gameId, player1: { id: player1, color: 'white' },
+                player2: { id: player2, color: 'black' },
+            });
         } else if (playerQueue.length >= 2) {
             if (!playersInQueue.has(playerId)) {
                 res.json({ status: 'error', message: 'Invalid player ID' });
                 return;
             }
-    
+
             let mainPlayer = null;
             let opponent = null;
-    
+
             while (mainPlayer == null || opponent == null) {
                 let currentPlayer = playerQueue.shift();
-    
+
                 if (currentPlayer == playerId) {
                     mainPlayer = currentPlayer
                 } else if (opponent == null) {
@@ -55,21 +61,24 @@ app.get('/queue', (req, res) => {
                     playerQueue.push(currentPlayer);
                 }
             }
-    
+
             const gameId = uuidv4();
-            games.set(gameId, { 
+            games.set(gameId, {
                 player1: { id: mainPlayer, color: 'white', socket: null },
                 player2: { id: opponent, color: 'black', socket: null },
             });
 
             playersInQueue.delete(mainPlayer);
             playersInQueue.delete(opponent);
-    
+
             playersInGame.set(mainPlayer, gameId);
             playersInGame.set(opponent, gameId);
-    
+
             wait = false
-            res.json({ status: 'success', gameId: gameId });
+            res.json({
+                status: 'success', gameId: gameId, player1: { id: mainPlayer, color: 'white' },
+                player2: { id: opponent, color: 'black' },
+            });
         }
     }
 

@@ -27,6 +27,7 @@
 import axios from 'axios';
 import ChessPiece from '@/components/ChessPiece.vue';
 import ChessBoard from '../../chessEngine/ChessBoard.ts';
+import {ConnectionState} from '../ConnectionState.js'
 
 export default {
     name: 'ChessBoard',
@@ -65,7 +66,8 @@ export default {
         socket: null,
         winnerColor: null,
         playerColor: null,
-        otherPlayerConnected: false
+        otherPlayerConnected: false,
+        connectionState: ConnectionState.GET_CONNECTION
     }), 
     methods: {
         getCellColor(row, col) {
@@ -108,6 +110,10 @@ export default {
             }
         },
         join() {
+            if (this.connectionState !== ConnectionState.CREATE_GAME) return;
+
+            console.log('joining game');
+
             this.socket.send(JSON.stringify({
                 type: 'join',
                 gameId: this.gameId,
@@ -125,6 +131,8 @@ export default {
             if (data.type === 'start') {
                 this.otherPlayerConnected = true;
                 this.$emit('queueStatus', 'Game Started');
+
+                this.connectionState = ConnectionState.START_GAME;
             } else if (data.type === 'move') {
                 const startPos = data.move.substring(0, 2);
                 const endPos = data.move.substring(2, 4);
@@ -164,14 +172,21 @@ export default {
 
         },
         sendMessage(move) {
-            this.socket.send(JSON.stringify({
+            const body = JSON.stringify({
                 gameId: this.gameId,
                 playerId: this.playerId,
                 move: move,
                 type: 'move'
-            }));
+            });
+
+            this.socket.send(body);
         },
         connectToQueue() {
+            if (this.connectionState !== ConnectionState.QUEUE_FOR_GAME) {
+                console.log('invalid state request with ', this.connectionState)
+                return;
+            }
+
             const queryParam = `?playerId=${this.playerId}`;
 
             axios.get(`http://localhost:3000/queue${queryParam}`).then((response) => {
@@ -193,6 +208,10 @@ export default {
 
                     this.socket = new WebSocket(`ws://localhost:3000/`);
 
+                    this.socket.addEventListener('open', () => {
+                        console.log('WebSocket connection opened');
+                    });
+
                     this.socket.addEventListener('message', this.onMessage);
 
                     // Handle WebSocket errors
@@ -206,6 +225,7 @@ export default {
                         console.log('WebSocket connection closed');
                     });
 
+                    this.connectionState = ConnectionState.CREATE_GAME;
                     this.join();
                 } else {
                     this.$emit('queueStatus', 'Error');
@@ -221,11 +241,18 @@ export default {
         ChessPiece
     },
     mounted() {
+        if (this.connectionState !== ConnectionState.GET_CONNECTION) {
+            console.log('invalid state request with ', this.connectionState)
+            return;
+        }
+
         // connect to the server and queue for game
         axios.put('http://localhost:3000/queue').then((response) => {
             console.log(response);
             this.playerId = response.data.playerId;
             this.$emit('queueStatus', 'Connected, adding to queue');
+
+            this.connectionState = ConnectionState.QUEUE_FOR_GAME;
 
             this.connectToQueue();
         }).catch((error) => {

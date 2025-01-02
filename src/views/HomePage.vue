@@ -73,8 +73,4 @@ export default {
 #container a {
   text-decoration: none;
 }
-
-.chess-board {
-  margin-top: 2.5%;
-}
 </style>
