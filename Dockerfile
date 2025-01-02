@@ -12,12 +12,9 @@ RUN npm install
 
 # Copy source code
 COPY . .
-
-# Build the app
-RUN npm run build
-
+COPY ./assets ./dist/assets
 # Serve stage
-FROM nginx:stable-alpine as production-stage
-COPY --from=build-stage /app/dist /usr/share/nginx/html
+FROM nginx:stable-alpine as staging-stage
+COPY --from=build-stage /src/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

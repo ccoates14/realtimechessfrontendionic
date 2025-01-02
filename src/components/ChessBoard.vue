@@ -114,6 +114,14 @@ export default {
 
             console.log('joining game');
 
+            //wait till socket is ready
+            if (this.socket.readyState !== 1) {
+                setTimeout(() => {
+                    this.join();
+                }, 500);
+                return;
+            }
+
             this.socket.send(JSON.stringify({
                 type: 'join',
                 gameId: this.gameId,

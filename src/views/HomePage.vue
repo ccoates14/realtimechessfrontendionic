@@ -23,8 +23,10 @@
   </ion-page>
 </template>
 
-<script>
+<script lang="ts">
+// @ts-ignore
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
+// @ts-ignore
 import ChessBoard from '@/components/ChessBoard.vue';
 
 export default {
@@ -37,7 +39,7 @@ export default {
     }
   },
   methods: {
-    queueStatusHandler(status) {
+    queueStatusHandler(status: any) {
       this.queueStatus = status;
     }
   }
