@@ -1,4 +1,4 @@
-import { ChessBoard } from "../ChessBoard";
+import ChessBoard from "../ChessBoard";
 
 export abstract class ChessPiece {
     constructor(public name: string, public color: string, public board: ChessBoard, public hasMoved: boolean = false) {

@@ -1,4 +1,4 @@
-import { ChessBoard } from "../ChessBoard";
+import ChessBoard from "../ChessBoard";
 import { Bishop } from "./Bishop";
 import { ChessPiece } from "./ChessPiece";
 import { Knight } from "./Knight";

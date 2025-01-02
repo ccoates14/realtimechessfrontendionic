@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - NODE_ENV=staging
+    depends_on:
+      - frontend
+
+  frontend:
+    build:
+      context: ./
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/src
+    environment:
+      - NODE_ENV=staging
