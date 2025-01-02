@@ -164,49 +164,54 @@ function cleanQueue() {
         return;
     }
 
-    queueBeingCleaned = true;
-    console.log('Cleaning queue');
-    console.log(playerQueue);
-    console.log(playersInQueue);
-    console.log(playersInGame);
-    console.log(games);
+    try {
+        queueBeingCleaned = true;
+        console.log('Cleaning queue');
+        console.log(playerQueue);
+        console.log(playersInQueue);
+        console.log(playersInGame);
+        console.log(games);
 
-    const MAX_QUEUE_TIME_SECONDS = 5 * 60;
-    //if the player has been sitting in the queue for more then the max time then boot them
-    const playerQueueToDelete = [];
-    const gamesToDelete = [];
+        const MAX_QUEUE_TIME_SECONDS = 5 * 60;
+        //if the player has been sitting in the queue for more then the max time then boot them
+        const playerQueueToDelete = [];
+        const gamesToDelete = [];
 
-    for (let i = 0; i < playerQueue.length; i++) {
-        const playerId = playerQueue[i];
-        const secondsInQueue = getSecondsInQueue(playerId);
+        for (let i = 0; i < playerQueue.length; i++) {
+            const playerId = playerQueue[i];
+            const secondsInQueue = getSecondsInQueue(playerId);
 
-        if (secondsInQueue >= MAX_QUEUE_TIME_SECONDS) {
-            //remove player
-            playerQueueToDelete.push(playerId);
+            if (secondsInQueue >= MAX_QUEUE_TIME_SECONDS) {
+                //remove player
+                playerQueueToDelete.push(playerId);
+            }
         }
+
+        //for each game
+        games.forEach((game, gameId) => {
+            if (game.player1.socket === null && game.player2.socket === null) {
+                gamesToDelete.push(gameId);
+            }
+        });
+
+        playerQueueToDelete.forEach(playerId => {
+            playerQueue.splice(playerQueue.indexOf(playerId), 1);
+            playersInQueue.delete(playerId);
+        });
+
+        gamesToDelete.forEach(gameId => {
+            const game = games.get(gameId);
+            games.delete(gameId);
+            playersInGame.delete(game.player1.id);
+            playersInGame.delete(game.player2.id);
+        });
+
+        console.log('Queue cleaned');
+    } catch (error) {
+        console.error('Error cleaning queue:', error);
+    } finally {
+        queueBeingCleaned = false;
     }
-
-    //for each game
-    games.forEach((game, gameId) => {
-        if (game.player1.socket === null && game.player2.socket === null) {
-            gamesToDelete.push(gameId);
-        }
-    });
-
-    playerQueueToDelete.forEach(playerId => {
-        playerQueue.splice(playerQueue.indexOf(playerId), 1);
-        playersInQueue.delete(playerId);
-    });
-
-    gamesToDelete.forEach(gameId => {
-        const game = games.get(gameId);
-        games.delete(gameId);
-        playersInGame.delete(game.player1.id);
-        playersInGame.delete(game.player2.id);
-    });
-
-    queueBeingCleaned = false;
-    console.log('Queue cleaned');
 }
 
 function getSecondsInQueue(playerId) {
