@@ -21,7 +21,7 @@ export default {
     }),
     computed: {
         pieceImage() {
-            return `assets/${this.teamColor}${this.name}.png`;
+            return `images/${this.teamColor}${this.name}.png`;
         }
     },
     methods: {

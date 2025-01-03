@@ -78,6 +78,7 @@ export default {
             return n < 7 ? 'black' : 'white';
         },
         cellClicked(row, col) {
+            console.log('cell clicked start', row, col);
             //once this is clicked
             // check if there is already a cell selected
             //if so then lets move the piece
@@ -183,6 +184,7 @@ export default {
             } else if (data.type === 'disconnected') {
                 this.gameDisconnected = true;
                 this.$emit('queueStatus', 'Game Closed');
+                console.log('Game disconnected');
             }
 
 

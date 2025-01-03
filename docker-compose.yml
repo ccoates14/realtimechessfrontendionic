@@ -5,7 +5,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./backend:/app/backend
+      - ./backend:/app/backend  # Keep for development
     environment:
       - NODE_ENV=staging
     depends_on:
@@ -16,7 +16,8 @@ services:
       context: ./
     ports:
       - "8080:80"
-    volumes:
+    volumes:  # Conditional volume mounting for development
+      # Uncomment during development to reflect code changes:
       - ./:/app
     environment:
       - NODE_ENV=staging
