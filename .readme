@@ -1,2 +1,14 @@
-docker-compose up --build
-docker-compose build --no-cache && docker-compose up
+
+
+Testing locally:
+  Run chrome with open -n -a /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --args --user-data-dir="/tmp/chrome_dev_test" --disable-web-security
+
+  Then front end run: 
+    npm run dev
+
+  Then backend run:
+    npm run start
+
+In browser paste localhost link into two seperate tabs.
+
+Plan to test with maybe a free tier of google cloud???

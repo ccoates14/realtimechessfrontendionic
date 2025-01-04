@@ -78,12 +78,8 @@ export default {
             return n < 7 ? 'black' : 'white';
         },
         cellClicked(row, col) {
-            console.log('cell clicked start', row, col);
-            //once this is clicked
-            // check if there is already a cell selected
-            //if so then lets move the piece
-            if (this.getTeamColor(this.board[row - 1][col - 1]) !== this.playerColor || !this.otherPlayerConnected || this.gameDisconnected) {
-                console.log('early return');
+            if (!this.otherPlayerConnected || this.gameDisconnected ||(this.cellSelected.row !== -1 &&
+                 this.getTeamColor(this.board[this.cellSelected.row - 1][this.cellSelected.col - 1]) !== this.playerColor)) {
                 this.cellSelected.row = this.cellSelected.col = -1;
                 return;
             }
@@ -109,10 +105,13 @@ export default {
                 this.cellSelected.row = -1;
                 this.cellSelected.col = -1;
             } else {
-                //select the cell
-                this.cellSelected.row = row;
-                this.cellSelected.col = col;
-                console.log('selected cell ', row, col);
+                if (this.board[row - 1][col - 1] !== 0 &&
+                    this.getTeamColor(this.board[row - 1][col - 1]) === this.playerColor
+                ) {
+                    //select the cell
+                    this.cellSelected.row = row;
+                    this.cellSelected.col = col;
+                }
             }
         },
         join() {
