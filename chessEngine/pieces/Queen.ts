@@ -9,6 +9,7 @@ export class Queen extends ChessPiece {
         const isStraight = startRow === endRow || startCol === endCol;
         const isDiagonal = Math.abs(startRow - endRow) === Math.abs(startCol - endCol);
       
+        console.log('hellooooooo')
         if (!isStraight && !isDiagonal) return false;
       
         // Check path

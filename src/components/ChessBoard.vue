@@ -1,23 +1,23 @@
 <template>
     <div class="chess-board-wrapper">
         <div class="row-labels">
-            <div v-for="row in 8" :key="'row-' + row" class="row-label">{{ 9 - row }}</div>
+            <div v-for="row in BOARD_SIZE" :key="'row-' + row" class="row-label">{{ (BOARD_SIZE + 1) - row }}</div>
         </div>
         <div>
             <div class="chess-board">
-                <div v-for="row in 8" :key="row" class="row">
-                    <div v-for="col in 8" :key="col" :class="['cell', getCellColor(row, col), cellSelected.row == row && cellSelected.col == col ? 'cell-selected' : '' ]" @click="cellClicked(row, col)">
+                <div v-for="row in BOARD_SIZE" :key="row" class="row">
+                    <div v-for="col in BOARD_SIZE" :key="col" :class="['cell', getCellColor(row, col), cellSelected.row == row && cellSelected.col == col ? 'cell-selected' : '' ]" @click="cellClicked(row, col)">
                         <ChessPiece
-                            v-if="board[row - 1][col - 1] != 0"
-                            :name="piecesByNumbers[board[row - 1][col - 1]]"
-                            :teamColor="getTeamColor(board[row - 1][col - 1])"
+                            v-if="chessBoard.getPiece(getMoveString(row, col)) !== null"
+                            :name="chessBoard.getPiece(getMoveString(row, col)).name.toLowerCase()"
+                            :teamColor="chessBoard.getPiece(getMoveString(row, col)).color.toLowerCase()"
                             class="centered-piece"
                         />
                     </div>
                 </div>
             </div>
             <div class="col-labels">
-                <div v-for="col in 8" :key="'col-' + col" class="col-label">{{ String.fromCharCode(64 + col) }}</div>
+                <div v-for="col in BOARD_SIZE" :key="'col-' + col" class="col-label">{{ getColLetter(col) }}</div>
             </div>
         </div>
     </div>
@@ -32,34 +32,30 @@ import ConnectionState from '../ConnectionState.js'
 export default {
     name: 'ChessBoard',
     data: () => ({
-        piecesByNumbers: {
-            1: 'rook',
-            2: 'knight',
-            3: 'bishop',
-            4: 'queen',
-            5: 'king',
-            6: 'pawn',
-            7: 'rook',
-            8: 'knight',
-            9: 'bishop',
-            10: 'queen',
-            11: 'king',
-            12: 'pawn'
-        },
-        board: [
-            [1, 2, 3, 4, 5, 3, 2, 1],
-            [6, 6, 6, 6, 6, 6, 6, 6],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [12, 12, 12, 12, 12, 12, 12, 12],
-            [7, 8, 9, 10, 11, 9, 8, 7]
-        ],
-        cellSelected: {
-            row: -1,
-            col: -1
-        },
+        // piecesByNumbers: {
+        //     1: 'rook',
+        //     2: 'knight',
+        //     3: 'bishop',
+        //     4: 'queen',
+        //     5: 'king',
+        //     6: 'pawn',
+        //     7: 'rook',
+        //     8: 'knight',
+        //     9: 'bishop',
+        //     10: 'queen',
+        //     11: 'king',
+        //     12: 'pawn'
+        // },
+        // board: [
+        //     [1, 2, 3, 4, 5, 3, 2, 1],
+        //     [6, 6, 6, 6, 6, 6, 6, 6],
+        //     [0, 0, 0, 0, 0, 0, 0, 0],
+        //     [0, 0, 0, 0, 0, 0, 0, 0],
+        //     [0, 0, 0, 0, 0, 0, 0, 0],
+        //     [0, 0, 0, 0, 0, 0, 0, 0],
+        //     [12, 12, 12, 12, 12, 12, 12, 12],
+        //     [7, 8, 9, 10, 11, 9, 8, 7]
+        // ],
         chessBoard: new ChessBoard(),
         playerId: null,
         gameId: null,
@@ -68,45 +64,71 @@ export default {
         playerColor: null,
         otherPlayerConnected: false,
         connectionState: ConnectionState.GET_CONNECTION,
-        gameDisconnected: false
+        gameDisconnected: false,
+        cellSelected: {
+            row: -1,
+            col: -1
+        },
+        BOARD_SIZE: ChessBoard.BOARD_SIZE
     }), 
     methods: {
+        getColLetter(col) {
+            return String.fromCharCode(73 - col).toLowerCase()
+        },
+        getMoveString(row, col) {
+            return this.getColLetter(col) + row.toString();
+        },
         getCellColor(row, col) {
             return (row + col) % 2 === 0 ? 'white-cell' : 'black-cell';
         },
-        getTeamColor(n) {
-            return n < 7 ? 'black' : 'white';
+        convertColToLetter(col) {
+            return String.fromCharCode(105 - col);
+        },
+        movePiece(row, col, endRow, endCol) {
+            let moved = false;
+
+            try {
+                const moveStart = this.getMoveString(row, col);
+                const moveEnd = this.getMoveString(endRow, endCol);
+
+
+                console.log(moveStart);
+                console.log(moveEnd);
+
+                if (this.chessBoard.movePiece(moveStart, moveEnd)) {
+                    moved = true;
+
+                    //ya this isn't standard but it will allow the fe to focus on displaying pieces and 
+                    // user input while the chess engine handles all things chess rules
+                    this.$forceUpdate();
+                }
+            } catch (err) {
+                console.warn(err);
+            }
+
+            return moved;
         },
         cellClicked(row, col) {
-            if (!this.otherPlayerConnected || this.gameDisconnected ||(this.cellSelected.row !== -1 &&
-                 this.getTeamColor(this.board[this.cellSelected.row - 1][this.cellSelected.col - 1]) !== this.playerColor)) {
+            if (!this.otherPlayerConnected || this.gameDisconnected) {
                 this.cellSelected.row = this.cellSelected.col = -1;
                 return;
             }
 
             if (this.cellSelected.row !== -1 && this.cellSelected.col !== -1) {
-                const startPos = String.fromCharCode(this.cellSelected.col + 96) + '' + this.cellSelected.row;
-                const endPos = String.fromCharCode(col + 96) + '' + row;
-
-                if (!this.chessBoard.movePiece(startPos, endPos)) {
+                if (!this.movePiece(this.cellSelected.row, this.cellSelected.col, row, col)) {
                     console.error('Invalid move');
                     this.cellSelected.row = -1;
                     this.cellSelected.col = -1;
                     return;
                 }
 
-                this.sendMessage(startPos + endPos);
+                this.sendMessage(this.getMoveString(this.cellSelected.row, this.cellSelected.col) + this.getMoveString(row, col));
 
-                //move the piece
-                this.board[row - 1][col - 1] = this.board[this.cellSelected.row - 1][this.cellSelected.col - 1];
-                this.board[this.cellSelected.row - 1][this.cellSelected.col - 1] = 0;
-
-                console.log('moved piece from ', startPos, ' to ', endPos);
                 this.cellSelected.row = -1;
                 this.cellSelected.col = -1;
             } else {
-                if (this.board[row - 1][col - 1] !== 0 &&
-                    this.getTeamColor(this.board[row - 1][col - 1]) === this.playerColor
+                if (this.chessBoard.getPiece(this.getMoveString(row, col)) !== null &&
+                    this.chessBoard.getPiece(this.getMoveString(row, col)).color === this.playerColor
                 ) {
                     //select the cell
                     this.cellSelected.row = row;
@@ -150,18 +172,17 @@ export default {
                 const startPos = data.move.substring(0, 2);
                 const endPos = data.move.substring(2, 4);
 
-                const startCol = startPos.charCodeAt(0) - 96;
+                const startCol = this.convertColToLetter(startPos.charCodeAt(0));
                 const startRow = parseInt(startPos[1]);
 
-                const endCol = endPos.charCodeAt(0) - 96;
+                const endCol = this.convertColToLetter(endPos.charCodeAt(0));
                 const endRow = parseInt(endPos[1]);
 
-                this.board[endRow - 1][endCol - 1] = this.board[startRow - 1][startCol - 1];
-                this.board[startRow - 1][startCol - 1] = 0;
-
-                //upon updating the move we need to check if the game is over
-                if (!this.chessBoard.movePiece(startPos, endPos)) {
+                // this is broken need to fix this
+                if (!this.movePiece(startRow, startCol, endRow, endCol)) {
                     console.error('Invalid move');
+                    this.gameDisconnected = true;
+                    this.$emit('queueStatus', 'Game Closed');
                     this.socket.close();
                 } else {
                     if (this.chessBoard.isKingInCheckMate(this.chessBoard.getKing(this.playerColor))) {
@@ -256,6 +277,8 @@ export default {
     },
     components: {
         ChessPiece
+    },
+    beforeMount() {
     },
     mounted() {
         if (this.connectionState !== ConnectionState.GET_CONNECTION) {

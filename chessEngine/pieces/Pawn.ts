@@ -4,15 +4,21 @@ export class Pawn extends ChessPiece {
     isValidMove(start: string, end: string): boolean {
         const [startRow, startCol] = this.board.getCoordinates(start);
         const [endRow, endCol] = this.board.getCoordinates(end);
+
+        //if end pos is not empty and moving vertically then this is invalid
+        if(this.board.getPieceAtCoordinates(endRow, endCol) && startCol === endCol){
+            return false;
+        }
       
         const isFirstMove = this.color === 'white' ? startRow === 6 : startRow === 1;
         const direction = this.color === 'white' ? -1 : 1;
         const isOneStep = endRow === startRow + direction && startCol === endCol;
+        const isCapture = Math.abs(endCol - startCol) === 1 && endRow === startRow + direction && this.board.getPieceAtCoordinates(endRow, endCol) !== null;
         const isTwoStep = isFirstMove && endRow === startRow + 2 * direction && startCol === endCol;
       
         if (isTwoStep && !this.board.isPathClear(start, end)) return false;
       
-        return isOneStep || isTwoStep;
+        return isOneStep || isTwoStep || isCapture;
       }
 
       getValidMoves(): string[] {

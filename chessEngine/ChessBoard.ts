@@ -57,6 +57,13 @@ export default class ChessBoard {
     }
   
     movePiece(start: string, end: string): boolean {
+      if (!this.validateMovePositionString(start)) {
+        throw new Error(`Invalid start position for move: ${start}`);
+      }
+      if (!this.validateMovePositionString(end)) {
+        throw new Error(`Invalid end position for move: ${end}`);
+      }
+
       const [startFile, startRank] = this.parsePosition(start);
       const [endFile, endRank] = this.parsePosition(end);
 
@@ -64,8 +71,7 @@ export default class ChessBoard {
       const endPiece = this.board[endRank][endFile];
 
       if (!startPiece) {
-        console.log(`No piece at ${start}`);
-        return false;
+        throw new Error(`No piece found at position ${start}`);
       }
   
       if (startPiece.isValidMove(start, end)) {
@@ -94,33 +100,6 @@ export default class ChessBoard {
   
       console.log(`Invalid move for ${startPiece.name}`);
       return false;
-    }
-  
-    parsePosition(pos: string): [number, number] {
-      return [pos.charCodeAt(0) - 'a'.charCodeAt(0), 8 - parseInt(pos[1])];
-    }
-  
-    printBoard() {
-      for (let rank = 0; rank < ChessBoard.BOARD_SIZE; rank++) {
-        const row = this.board[rank]
-          .map((piece) => (piece ? piece.name[0] : '.'))
-          .join(' ');
-        console.log(ChessBoard.BOARD_SIZE - rank + ' ' + row);
-      }
-      console.log('  a b c d e f g h');
-    }
-
-    getCoordinates(position: string): [number, number] {
-      const column = position.charAt(0); // 'a' to 'h'
-      const row = position.charAt(1); // '1' to '8'
-  
-      // Convert the column ('a' to 'h') to 0-7 index
-      const colIndex = column.charCodeAt(0) - 'a'.charCodeAt(0);
-  
-      // Convert the row ('1' to '8') to 7-0 index
-      const rowIndex = ChessBoard.BOARD_SIZE - parseInt(row);
-  
-      return [rowIndex, colIndex];
     }
 
     isPathClear(start: string, end: string): boolean {
@@ -154,23 +133,6 @@ export default class ChessBoard {
       return true; // Path is clear
     }
 
-    getPiece(position: string): ChessPiece | null {
-      const [row, col] = this.getCoordinates(position);
-      return this.board[row][col];
-    }
-
-    getPieceAtCoordinates(row: number, col: number): ChessPiece | null {
-      if (!this.isWithinBounds(row, col)) {
-        throw new Error(`Coordinates ${row}, ${col} are out of bounds`);
-      }
-
-      return this.board[row][col];
-    }
-
-    isWithinBounds(row: number, col: number): boolean {
-      return row >= 0 && row < ChessBoard.BOARD_SIZE && col >= 0 && col < ChessBoard.BOARD_SIZE;
-    }
-
     getKing(color: string): King {
       for (let row = 0; row < ChessBoard.BOARD_SIZE; row++) {
         for (let col = 0; col < ChessBoard.BOARD_SIZE; col++) {
@@ -181,6 +143,10 @@ export default class ChessBoard {
         }
       }
       throw new Error(`King not found for color ${color}`);
+    }
+
+    isWithinBounds(row: number, col: number): boolean {
+      return row >= 0 && row < ChessBoard.BOARD_SIZE && col >= 0 && col < ChessBoard.BOARD_SIZE;
     }
 
     isKingInCheckMate(king: King): boolean {
@@ -250,6 +216,48 @@ export default class ChessBoard {
       return true; // If no moves can prevent check, the king is in checkmate
     }
 
+    getPiece(position: string): ChessPiece | null {
+      const [row, col] = this.getCoordinates(position);
+      return this.board[row][col];
+    }
+
+    toString(): string {
+      let boardStr = '';
+      for (let row = ChessBoard.BOARD_SIZE - 1; row >= 0; row--) {
+        for (let col = 0; col < ChessBoard.BOARD_SIZE; col++) {
+          const piece = this.board[row][col];
+          boardStr += piece ? piece.name.toLowerCase() + piece.color : '.';
+          boardStr += ' ';
+        }
+        boardStr += '\n';
+      }
+      return boardStr;
+    }
+  
+    parsePosition(pos: string): [number, number] {
+      return [pos.charCodeAt(0) - 'a'.charCodeAt(0), ChessBoard.BOARD_SIZE - parseInt(pos[1])];
+    }
+  
+    getCoordinates(position: string): [number, number] {
+      const column = position.charAt(0); // 'a' to 'h'
+      const row = position.charAt(1); // '1' to '8'
+      
+      // Convert the column ('a' to 'h') to 0-7 index
+      const colIndex = column.charCodeAt(0) - 'a'.charCodeAt(0);
+  
+      // Convert the row ('1' to '8') to 7-0 index
+      const rowIndex = ChessBoard.BOARD_SIZE - parseInt(row);
+      return [rowIndex, colIndex];
+    }
+
+    getPieceAtCoordinates(row: number, col: number): ChessPiece | null {
+      if (!this.isWithinBounds(row, col)) {
+        throw new Error(`Coordinates ${row}, ${col} are out of bounds`);
+      }
+
+      return this.board[row][col];
+    }
+
     setPieceAtCoordinates(piece: ChessPiece | null, row: number, col: number) {
       if (!this.isWithinBounds(row, col)) {
         throw new Error(`Coordinates ${row}, ${col} are out of bounds`);
@@ -266,6 +274,17 @@ export default class ChessBoard {
       const file = String.fromCharCode('a'.charCodeAt(0) + col); // Convert column index to file letter
       const rank = (8 - row).toString(); // Convert row index to rank number (0 -> 8, 7 -> 1)
       return `${file}${rank}`;
+    }
+
+    validateMovePositionString(position: string): boolean {
+      console.log('validating move position string', position)
+      if (position.length !== 2) return false;
+      const [file, rank] = position;
+
+      if (file < 'a' || file > 'h') return false;
+      if (rank < '1' || rank > '8') return false;
+
+      return true;
     }
 
   }
