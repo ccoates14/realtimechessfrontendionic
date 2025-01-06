@@ -2,6 +2,8 @@ import { ChessPiece } from "./ChessPiece";
 
 export class Rook extends ChessPiece {
     isValidMove(start: string, end: string): boolean {
+        if (!super.isValidMove(start, end)) return false;
+        
         const [startRow, startCol] = this.board.getCoordinates(start);
         const [endRow, endCol] = this.board.getCoordinates(end);
       

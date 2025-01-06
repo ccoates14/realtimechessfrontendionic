@@ -8,6 +8,8 @@ import { Rook } from "./Rook";
 
 export class King extends ChessPiece {
     isValidMove(start: string, end: string): boolean {
+      if (!super.isValidMove(start, end)) return false;
+      
       const [startFile, startRank] = this.parsePosition(start);
       const [endFile, endRank] = this.parsePosition(end);
       return Math.abs(startFile - endFile) <= 1 && Math.abs(startRank - endRank) <= 1;

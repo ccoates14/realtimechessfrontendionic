@@ -112,8 +112,9 @@ wss.on('connection', (ws) => {
         const body = JSON.parse(message);
         const gameId = body.gameId;
         const playerId = body.playerId;
-        const game = games.get(gameId);
         const move = body.move;
+
+        const game = games.get(gameId);
 
         if (body.type === 'join') {
             if (game.player1.id === playerId) {

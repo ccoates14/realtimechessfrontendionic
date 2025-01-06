@@ -9,7 +9,7 @@ import { Rook } from "./pieces/Rook";
 export default class ChessBoard {
     static BOARD_SIZE = 8;
     board: (ChessPiece | null)[][] = Array.from({ length: ChessBoard.BOARD_SIZE }, () => Array(ChessBoard.BOARD_SIZE).fill(null));
-    losers: ChessPiece[] = []; 
+    winners: string[] = []; // in the future I might make the game so that there are more then 2 players
   
     constructor() {
       this.setupBoard();
@@ -68,7 +68,7 @@ export default class ChessBoard {
       const [endFile, endRank] = this.parsePosition(end);
 
       const startPiece = this.board[startRank][startFile];
-      const endPiece = this.board[endRank][endFile];
+      // const endPiece = this.board[endRank][endFile];
 
       if (!startPiece) {
         throw new Error(`No piece found at position ${start}`);
@@ -78,24 +78,37 @@ export default class ChessBoard {
         this.board[endRank][endFile] = startPiece;
         this.board[startRank][startFile] = null;
 
-        if (this.getKing(startPiece.color).isInCheck(this)) {
-          //undo move
-          this.board[startRank][startFile] = startPiece;
-          this.board[endRank][endFile] = endPiece;
+        const opponentColor = startPiece.color === 'white' ? 'black' : 'white';
+        const king = this.getKing(startPiece.color);
+        const opponentKing = this.getKing(opponentColor);
+
+        // if (king === null) {
+          
+        // } else if (opponentKing === null) {
+        // }
+
+        // if (king.isInCheck(this)) {
+        //   //undo move
+        //   this.board[startRank][startFile] = startPiece;
+        //   this.board[endRank][endFile] = endPiece;
   
-          console.log(`Invalid move for ${startPiece.name}, would put king in check`);
-        } else {
+        //   console.log(`Invalid move for ${startPiece.name}, would put king in check`);
+        // } else {
+        //   if (this.isKingInCheckMate(opponentKing)) {
+        //     this.losers.push(opponentKing);
+        //   }
 
-          //check if opponent is in checkmate
-          const opponentKing = this.getKing(startPiece.color === 'white' ? 'black' : 'white');
+        //   startPiece.hasMoved = true;
+        //   return true;
+        // }
 
-          if (this.isKingInCheckMate(opponentKing)) {
-            this.losers.push(opponentKing);
-          }
-
-          startPiece.hasMoved = true;
-          return true;
+        if (king === null) {
+          this.winners.push(opponentColor);
+        } else if (opponentKing === null) {
+          this.winners.push(startPiece.color);
         }
+
+        return true;
       }
   
       console.log(`Invalid move for ${startPiece.name}`);
@@ -133,7 +146,7 @@ export default class ChessBoard {
       return true; // Path is clear
     }
 
-    getKing(color: string): King {
+    getKing(color: string): King | null {
       for (let row = 0; row < ChessBoard.BOARD_SIZE; row++) {
         for (let col = 0; col < ChessBoard.BOARD_SIZE; col++) {
           const piece = this.board[row][col];
@@ -142,7 +155,8 @@ export default class ChessBoard {
           }
         }
       }
-      throw new Error(`King not found for color ${color}`);
+      
+      return null;
     }
 
     isWithinBounds(row: number, col: number): boolean {
@@ -277,7 +291,6 @@ export default class ChessBoard {
     }
 
     validateMovePositionString(position: string): boolean {
-      console.log('validating move position string', position)
       if (position.length !== 2) return false;
       const [file, rank] = position;
 
@@ -285,6 +298,10 @@ export default class ChessBoard {
       if (rank < '1' || rank > '8') return false;
 
       return true;
+    }
+
+    getWinners(): string[] {
+      return this.winners;
     }
 
   }

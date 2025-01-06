@@ -2,6 +2,8 @@ import { ChessPiece } from "./ChessPiece";
 
 export class Queen extends ChessPiece {
     isValidMove(start: string, end: string): boolean {
+        if (!super.isValidMove(start, end)) return false;
+        
         const [startRow, startCol] = this.board.getCoordinates(start);
         const [endRow, endCol] = this.board.getCoordinates(end);
       
@@ -9,7 +11,6 @@ export class Queen extends ChessPiece {
         const isStraight = startRow === endRow || startCol === endCol;
         const isDiagonal = Math.abs(startRow - endRow) === Math.abs(startCol - endCol);
       
-        console.log('hellooooooo')
         if (!isStraight && !isDiagonal) return false;
       
         // Check path

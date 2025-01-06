@@ -3,7 +3,13 @@ import ChessBoard from "../ChessBoard";
 export abstract class ChessPiece {
     constructor(public name: string, public color: string, public board: ChessBoard, public hasMoved: boolean = false) {
     }
-    abstract isValidMove(start: string, end: string): boolean;
+
+    public isValidMove(_: string, end: string) {
+      const [endRow, endCol] = this.board.getCoordinates(end);
+      const endPiece = this.board.board[endRow][endCol];
+      if (endPiece && endPiece.color === this.color) return false;
+      return true;
+    };
   
     protected parsePosition(pos: string): [number, number] {
       return [pos.charCodeAt(0) - 'a'.charCodeAt(0), parseInt(pos[1]) - 1];
@@ -52,5 +58,4 @@ export abstract class ChessPiece {
       }
       return moves;
     }
-    
   }

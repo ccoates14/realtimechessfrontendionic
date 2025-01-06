@@ -13,3 +13,34 @@ Testing locally:
 In browser paste localhost link into two seperate tabs.
 
 Plan to test with maybe a free tier of google cloud???
+
+Something I hadn't really considered is with normal chess, checkmate is only a thing because people are taking turns.
+
+In my version of chess there isn't really such thing as checkmate because no one is taking turns, instead the goal is about killing the other king. Now that I am thinking about it more a king getting put into check no longer matters either and so I think I am going to allow a player to put their king into check if they want.
+
+Rules of Game:
+
+  Normal chess rules with the following added:
+
+    There are no turns, everyone may move as much as they want. 
+
+    You win by killing the opponent king, not by putting your opponent into checkmate.
+
+    When you move a piece that piece becomes locked for a certain amount of time proportional to the pieces value.
+
+      Pawn: 2secs
+
+      Knight and Bishop: 4secs
+
+      Rook: 5secs
+
+      Queen: 6secs
+
+      King: 1 secs
+
+    Thinking about adding the concept of health to pieces, not sure how to best implement that.
+
+
+
+
+

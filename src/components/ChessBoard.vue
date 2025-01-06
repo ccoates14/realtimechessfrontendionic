@@ -82,7 +82,7 @@ export default {
             return (row + col) % 2 === 0 ? 'white-cell' : 'black-cell';
         },
         convertColToLetter(col) {
-            return String.fromCharCode(105 - col);
+            return 105 - col;
         },
         movePiece(row, col, endRow, endCol) {
             let moved = false;
@@ -90,10 +90,6 @@ export default {
             try {
                 const moveStart = this.getMoveString(row, col);
                 const moveEnd = this.getMoveString(endRow, endCol);
-
-
-                console.log(moveStart);
-                console.log(moveEnd);
 
                 if (this.chessBoard.movePiece(moveStart, moveEnd)) {
                     moved = true;
@@ -104,6 +100,11 @@ export default {
                 }
             } catch (err) {
                 console.warn(err);
+                console.warn('the args were ');
+                console.warn('row', row)
+                console.warn('col', col)
+                console.warn('endRow', endRow)
+                console.warn('endCol', endCol)
             }
 
             return moved;
@@ -138,8 +139,6 @@ export default {
         },
         join() {
             if (this.connectionState !== ConnectionState.CREATE_GAME) return;
-
-            console.log('joining game');
 
             //wait till socket is ready
             if (this.socket.readyState !== 1) {
@@ -178,26 +177,28 @@ export default {
                 const endCol = this.convertColToLetter(endPos.charCodeAt(0));
                 const endRow = parseInt(endPos[1]);
 
-                // this is broken need to fix this
                 if (!this.movePiece(startRow, startCol, endRow, endCol)) {
                     console.error('Invalid move');
                     this.gameDisconnected = true;
                     this.$emit('queueStatus', 'Game Closed');
                     this.socket.close();
                 } else {
-                    if (this.chessBoard.isKingInCheckMate(this.chessBoard.getKing(this.playerColor))) {
-                        this.$emit('queueStatus', 'Game Over! You Lost!');
+                    const winners = this.chessBoard.getWinners();
+
+                    if (winners.length > 0) {
+                        this.$emit('queueStatus', 'Game Over! Team ' + winners[0] + ' won!');
                         this.sendMessage('done');
                         this.socket.close();
                     }
                 }
             } else if (data.type === 'done') {
+                const winners = this.chessBoard.getWinners();
                 let queueStatus = 'Game Over! ';
 
-                if (this.chessBoard.isKingInCheckMate(this.chessBoard.getKing(this.playerColor))) {
-                    queueStatus += 'You lost!';
+                if (winners.length == 0) {
+                    console.warn('error occured finding winner')
                 } else {
-                    queueStatus += 'You won!';
+                    queueStatus += 'Winner ' + winners[0];
                 }
 
                 this.$emit('queueStatus', queueStatus);

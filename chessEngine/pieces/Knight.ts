@@ -2,17 +2,14 @@ import { ChessPiece } from "./ChessPiece";
 
 export class Knight extends ChessPiece {
     isValidMove(start: string, end: string): boolean {
+        if (!super.isValidMove(start, end)) return false;
+
         const [startRow, startCol] = this.board.getCoordinates(start);
         const [endRow, endCol] = this.board.getCoordinates(end);
       
         const rowDiff = Math.abs(startRow - endRow);
         const colDiff = Math.abs(startCol - endCol);
-      
-        //check end position is not same team
-        const endPiece = this.board.board[endRow][endCol];
-
-        if (endPiece && endPiece.color === this.color) return false;
-
+    
         // Knight moves in L-shapes
         return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2);
       }
