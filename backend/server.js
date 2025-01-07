@@ -113,6 +113,7 @@ wss.on('connection', (ws) => {
         const gameId = body.gameId;
         const playerId = body.playerId;
         const move = body.move;
+        const type = body.type;
 
         const game = games.get(gameId);
 
@@ -138,7 +139,9 @@ wss.on('connection', (ws) => {
                 if (opponent.socket === null) {
                     ws.send(JSON.stringify({ type: 'wait' }));
                 } else {
-                    opponent.socket.send(JSON.stringify({ type: 'move', move }));
+                    console.log('Sending move to opponent');
+                    console.log({ type, move });
+                    opponent.socket.send(JSON.stringify({ type, move }));
                     ws.send(JSON.stringify({ type: 'success' }));
                 }
             } catch (error) {

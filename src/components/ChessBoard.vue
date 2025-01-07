@@ -69,7 +69,8 @@ export default {
             row: -1,
             col: -1
         },
-        BOARD_SIZE: ChessBoard.BOARD_SIZE
+        BOARD_SIZE: ChessBoard.BOARD_SIZE,
+        winners: null
     }), 
     methods: {
         getColLetter(col) {
@@ -123,7 +124,7 @@ export default {
                     return;
                 }
 
-                this.sendMessage(this.getMoveString(this.cellSelected.row, this.cellSelected.col) + this.getMoveString(row, col));
+                this.sendMessage(this.getMoveString(this.cellSelected.row, this.cellSelected.col) + this.getMoveString(row, col), 'move');
 
                 this.cellSelected.row = -1;
                 this.cellSelected.col = -1;
@@ -157,10 +158,12 @@ export default {
             this.$emit('queueStatus', 'Game Started');
         },  
         onMessage(event) {
-            // this.serverMessage = event.data;
-            // we are either receiving a game move from the opponent or the game is over
             const data = JSON.parse(event.data);
             console.log(data);
+
+            if (this.winners) {
+                return ;
+            }
 
             if (data.type === 'start') {
                 this.otherPlayerConnected = true;
@@ -186,9 +189,11 @@ export default {
                     const winners = this.chessBoard.getWinners();
 
                     if (winners.length > 0) {
+                        console.log('game over getting winners')
+                        this.winners = winners;
                         this.$emit('queueStatus', 'Game Over! Team ' + winners[0] + ' won!');
-                        this.sendMessage('done');
-                        this.socket.close();
+                        this.sendMessage('done', 'done');
+                        this.socket.close();    
                     }
                 }
             } else if (data.type === 'done') {
@@ -210,14 +215,16 @@ export default {
 
 
         },
-        sendMessage(move) {
+        sendMessage(move, type) {
             const body = JSON.stringify({
                 gameId: this.gameId,
                 playerId: this.playerId,
-                move: move,
-                type: 'move'
+                move,
+                type
             });
 
+            console.log('sending')
+            console.log(body)
             this.socket.send(body);
         },
         connectToQueue() {
@@ -260,6 +267,9 @@ export default {
 
                     // Handle WebSocket connection close
                     this.socket.addEventListener('close', () => {
+
+                        if (this.winners) return ;
+
                         this.$emit('queueStatus', 'Game Closed.....');
                         console.log('WebSocket connection closed');
                     });
