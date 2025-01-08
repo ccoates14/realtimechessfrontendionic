@@ -1,27 +1,49 @@
 <template>
     <div class="chess-board-wrapper">
         <div class="row-labels">
-            <div v-for="row in BOARD_SIZE" :key="'row-' + row" class="row-label">{{ (BOARD_SIZE + 1) - row }}</div>
+            <div 
+                v-for="row in BOARD_SIZE" 
+                :key="'row-' + row" 
+                class="row-label">
+                {{ (BOARD_SIZE + 1) - getDisplayRow(row) }}
+            </div>
         </div>
         <div>
             <div class="chess-board">
-                <div v-for="row in BOARD_SIZE" :key="row" class="row">
-                    <div v-for="col in BOARD_SIZE" :key="col" :class="['cell', getCellColor(row, col), cellSelected.row == row && cellSelected.col == col ? 'cell-selected' : '' ]" @click="cellClicked(row, col)">
+                <div 
+                    v-for="row in BOARD_SIZE" 
+                    :key="row" 
+                    class="row">
+                    <div 
+                        v-for="col in BOARD_SIZE" 
+                        :key="col" 
+                        :class="[
+                            'cell', 
+                            getCellColor(getDisplayRow(row), col), 
+                            cellSelected.row == getDisplayRow(row) && cellSelected.col == col ? 'cell-selected' : ''
+                        ]" 
+                        @click="cellClicked(getDisplayRow(row), col)">
                         <ChessPiece
-                            v-if="chessBoard.getPiece(getCellDisplayPosition(row, col)) !== null"
-                            :name="chessBoard.getPiece(getCellDisplayPosition(row, col)).name.toLowerCase()"
-                            :teamColor="chessBoard.getPiece(getCellDisplayPosition(row, col)).color.toLowerCase()"
+                            v-if="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)) !== null"
+                            :name="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)).name.toLowerCase()"
+                            :teamColor="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)).color.toLowerCase()"
                             class="centered-piece"
                         />
                     </div>
                 </div>
             </div>
             <div class="col-labels">
-                <div v-for="col in BOARD_SIZE" :key="'col-' + col" class="col-label">{{ getColLetter(col) }}</div>
+                <div 
+                    v-for="col in BOARD_SIZE" 
+                    :key="'col-' + col" 
+                    class="col-label">
+                    {{ getColLetter(col) }}
+                </div>
             </div>
         </div>
     </div>
 </template>
+
 <script>
 import axios from 'axios';
 import ChessPiece from '@/components/ChessPiece.vue';
@@ -48,11 +70,14 @@ export default {
         winners: null
     }), 
     computed: {
-        blackPerspective() {
-            return this.playerColor == 'black';
-        }
+        isBlackTeam() {
+            return this.playerColor === 'black';
+        },
     },
     methods: {
+        getDisplayRow(row) {
+            return !this.isBlackTeam ? this.BOARD_SIZE + 1 - row : row;
+        },
         getCellDisplayPosition(row, col) {
             return this.getMoveString(row, col);
         },
