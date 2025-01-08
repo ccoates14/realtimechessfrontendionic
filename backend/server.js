@@ -1,16 +1,11 @@
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
+const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const cors = require('cors');
 const app = express();
 const port = 3000;
 
-const corsOptions = {
-    origin: 'https://realtimechessbackendionic.onrender.com/', // Replace with your allowed origin
-    methods: ['GET', 'PUT', 'POST'], // Specify allowed HTTP methods
-};
-app.use(cors(corsOptions));
 
 // In-memory player queue
 const playerQueue = [];
@@ -19,6 +14,14 @@ const playersInGame = new Map();
 const games = new Map();
 const socketsToGame = new Map();
 let queueBeingCleaned = false;
+
+// Serve static files from the 'dist' directory
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Catch-all route to serve the Vue app (for handling client-side routing)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+});
 
 //later we can make it so it removes dead queue
 
