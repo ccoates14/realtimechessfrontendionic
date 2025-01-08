@@ -311,7 +311,8 @@ export default {
 
                     this.$emit('teamColor', this.playerColor);
 
-                    this.socket = new WebSocket(`ws://` + this.backendUrl);
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    this.socket = new WebSocket(protocol + "//" + this.backendUrl);
 
                     this.socket.addEventListener('open', () => {
                         console.log('WebSocket connection opened');
