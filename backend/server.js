@@ -6,11 +6,11 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
-// const corsOptions = {
-//     origin: 'https://realtimechessbackendionic.onrender.com/', // Replace with your allowed origin
-//     methods: ['GET', 'PUT', 'POST'], // Specify allowed HTTP methods
-// };
-// app.use(cors(corsOptions));
+const corsOptions = {
+    origin: 'https://realtimechessbackendionic.onrender.com/', // Replace with your allowed origin
+    methods: ['GET', 'PUT', 'POST'], // Specify allowed HTTP methods
+};
+app.use(cors(corsOptions));
 
 // In-memory player queue
 const playerQueue = [];
