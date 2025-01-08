@@ -1,5 +1,5 @@
 const express = require('express');
-const http = require('http');
+const https = require('https');
 const WebSocket = require('ws');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
@@ -98,10 +98,10 @@ app.get('/queue/length', (req, res) => {
 
 
 // Create HTTP server
-const server = http.createServer(app);
+const server = https.createServer(app);
 
 // Initialize WebSocket server
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ port: 5000 });
 
 // WebSocket connection logic
 wss.on('connection', (ws) => {
@@ -184,8 +184,8 @@ wss.on('connection', (ws) => {
 
 // Start the server
 server.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-    console.log(`WebSocket server listening on ws://localhost:${port}`);
+    console.log(`Server running`);
+    console.log(`WebSocket server listening`);
 });
 
 function cleanQueue() {
