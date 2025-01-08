@@ -27,7 +27,8 @@ export default {
         pieceImage() {
             if (this.localhost) return `images/${this.teamColor}${this.name}.png`;
 
-            return `https://storage.cloud.google.com/realtimechess/assets/images/${this.teamColor}${this.name}.png`;
+            //https://storage.googleapis.com/realtimechess/assets/images/blackbishop.png
+            return `https://storage.googleapis.com/realtimechess/assets/images/${this.teamColor}${this.name}.png`;
         }
     },
     methods: {
