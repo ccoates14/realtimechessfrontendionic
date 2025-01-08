@@ -101,7 +101,7 @@ app.get('/queue/length', (req, res) => {
 const server = https.createServer(app);
 
 // Initialize WebSocket server
-const wss = new WebSocket.Server({ port: 5000 });
+const wss = new WebSocket.Server();
 
 // WebSocket connection logic
 wss.on('connection', (ws) => {
