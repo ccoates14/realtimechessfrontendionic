@@ -83,7 +83,12 @@ export default {
     methods: {
         afterPieceUnlock(piece, customTimeout=null) {
             setTimeout(() => {
-                this.piecesLocked.splice(this.piecesLocked.indexOf(piece), 1);
+                const indexToRemove = this.piecesLocked.indexOf(piece);
+
+                //it is possible it got killed during lock
+                if (indexToRemove == -1) return;
+
+                this.piecesLocked.splice(indexToRemove, 1);
             }, customTimeout == null ? piece.timeout * 1000 : customTimeout);
         },
         pieceLocked(piece) {
@@ -113,9 +118,14 @@ export default {
             try {
                 const moveStart = this.getMoveString(row, col);
                 const moveEnd = this.getMoveString(endRow, endCol);
+                const moveResult = this.chessBoard.movePiece(moveStart, moveEnd);
 
-                if (this.chessBoard.movePiece(moveStart, moveEnd)) {
+                if (moveResult.success) {
                     moved = true;
+
+                    if (moveResult.pieceKilled && this.piecesLocked.includes(moveResult.pieceKilled)) {
+                        this.afterPieceUnlock(moveResult.pieceKilled, 0);
+                    }
 
                     //ya this isn't standard but it will allow the fe to focus on displaying pieces and 
                     // user input while the chess engine handles all things chess rules

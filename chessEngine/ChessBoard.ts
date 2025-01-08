@@ -56,7 +56,10 @@ export default class ChessBoard {
       this.board[rank][file] = piece;
     }
   
-    movePiece(start: string, end: string): boolean {
+    movePiece(start: string, end: string): {
+      success: boolean,
+      pieceKilled: ChessPiece | null
+    } {
       if (!this.validateMovePositionString(start)) {
         throw new Error(`Invalid start position for move: ${start}`);
       }
@@ -68,7 +71,8 @@ export default class ChessBoard {
       const [endFile, endRank] = this.parsePosition(end);
 
       const startPiece = this.board[startRank][startFile];
-      // const endPiece = this.board[endRank][endFile];
+      let endPiece = this.board[endRank][endFile];
+
 
       if (!startPiece) {
         throw new Error(`No piece found at position ${start}`);
@@ -108,11 +112,17 @@ export default class ChessBoard {
           this.winners.push(startPiece.color);
         }
 
-        return true;
+        return {
+          success: true,
+          pieceKilled: endPiece
+        };
       }
   
       console.log(`Invalid move for ${startPiece.name}`);
-      return false;
+      return {
+        success: false,
+        pieceKilled: null
+      };
     }
 
     isPathClear(start: string, end: string): boolean {
