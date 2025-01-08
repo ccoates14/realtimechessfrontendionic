@@ -8,9 +8,9 @@
                 <div v-for="row in BOARD_SIZE" :key="row" class="row">
                     <div v-for="col in BOARD_SIZE" :key="col" :class="['cell', getCellColor(row, col), cellSelected.row == row && cellSelected.col == col ? 'cell-selected' : '' ]" @click="cellClicked(row, col)">
                         <ChessPiece
-                            v-if="chessBoard.getPiece(getMoveString(row, col)) !== null"
-                            :name="chessBoard.getPiece(getMoveString(row, col)).name.toLowerCase()"
-                            :teamColor="chessBoard.getPiece(getMoveString(row, col)).color.toLowerCase()"
+                            v-if="chessBoard.getPiece(getCellDisplayPosition(row, col)) !== null"
+                            :name="chessBoard.getPiece(getCellDisplayPosition(row, col)).name.toLowerCase()"
+                            :teamColor="chessBoard.getPiece(getCellDisplayPosition(row, col)).color.toLowerCase()"
                             class="centered-piece"
                         />
                     </div>
@@ -47,7 +47,15 @@ export default {
         BOARD_SIZE: ChessBoard.BOARD_SIZE,
         winners: null
     }), 
+    computed: {
+        blackPerspective() {
+            return this.playerColor == 'black';
+        }
+    },
     methods: {
+        getCellDisplayPosition(row, col) {
+            return this.getMoveString(row, col);
+        },
         getColLetter(col) {
             return String.fromCharCode(73 - col).toLowerCase()
         },
@@ -91,25 +99,30 @@ export default {
                 return;
             }
 
+            const fromRow = this.cellSelected.row;
+            const fromCol = this.cellSelected.col;
+            const toRow = row;
+            const toCol = col;
+
             if (this.cellSelected.row !== -1 && this.cellSelected.col !== -1) {
-                if (!this.movePiece(this.cellSelected.row, this.cellSelected.col, row, col)) {
+                if (!this.movePiece(fromRow, fromCol, toRow, toCol)) {
                     console.error('Invalid move');
                     this.cellSelected.row = -1;
                     this.cellSelected.col = -1;
                     return;
                 }
 
-                this.sendMessage(this.getMoveString(this.cellSelected.row, this.cellSelected.col) + this.getMoveString(row, col), 'move');
+                this.sendMessage(this.getMoveString(fromRow, fromCol) + this.getMoveString(toRow, toCol), 'move');
 
                 this.cellSelected.row = -1;
                 this.cellSelected.col = -1;
             } else {
-                if (this.chessBoard.getPiece(this.getMoveString(row, col)) !== null &&
-                    this.chessBoard.getPiece(this.getMoveString(row, col)).color === this.playerColor
+                if (this.chessBoard.getPiece(this.getMoveString(toRow, toCol)) !== null &&
+                    this.chessBoard.getPiece(this.getMoveString(toRow, toCol)).color === this.playerColor
                 ) {
                     //select the cell
-                    this.cellSelected.row = row;
-                    this.cellSelected.col = col;
+                    this.cellSelected.row = toRow;
+                    this.cellSelected.col = toCol;
                 }
             }
         },
