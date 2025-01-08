@@ -29,6 +29,10 @@
                             :teamColor="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)).color.toLowerCase()"
                             class="centered-piece"
                         />
+                        <TimeTracker :duration="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)).timeout" 
+                            v-if="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)) !== null &&
+                                pieceLocked(chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)))
+                            "></TimeTracker>
                     </div>
                 </div>
             </div>
@@ -49,6 +53,7 @@ import axios from 'axios';
 import ChessPiece from '@/components/ChessPiece.vue';
 import ChessBoard from '../../chessEngine/ChessBoard.ts';
 import ConnectionState from '../ConnectionState.js'
+import TimeTracker from './TimeTracker.vue';
 
 export default {
     name: 'ChessBoard',
@@ -67,7 +72,8 @@ export default {
             col: -1
         },
         BOARD_SIZE: ChessBoard.BOARD_SIZE,
-        winners: null
+        winners: null,
+        piecesLocked: []
     }), 
     computed: {
         isBlackTeam() {
@@ -75,6 +81,14 @@ export default {
         },
     },
     methods: {
+        afterPieceUnlock(piece, customTimeout=null) {
+            setTimeout(() => {
+                this.piecesLocked.splice(this.piecesLocked.indexOf(piece), 1);
+            }, customTimeout == null ? piece.timeout * 1000 : customTimeout);
+        },
+        pieceLocked(piece) {
+            return this.piecesLocked.includes(piece);
+        },
         getDisplayRow(row) {
             return !this.isBlackTeam ? this.BOARD_SIZE + 1 - row : row;
         },
@@ -130,20 +144,30 @@ export default {
             const toCol = col;
 
             if (this.cellSelected.row !== -1 && this.cellSelected.col !== -1) {
+                const fromPiece =  this.chessBoard.getPiece(this.getMoveString(fromRow, fromCol));
+                this.piecesLocked.push(fromPiece);
+
                 if (!this.movePiece(fromRow, fromCol, toRow, toCol)) {
                     console.error('Invalid move');
                     this.cellSelected.row = -1;
                     this.cellSelected.col = -1;
+                    this.afterPieceUnlock(fromPiece, 0);
+
                     return;
                 }
-
+                
                 this.sendMessage(this.getMoveString(fromRow, fromCol) + this.getMoveString(toRow, toCol), 'move');
 
                 this.cellSelected.row = -1;
                 this.cellSelected.col = -1;
+
+                this.afterPieceUnlock(fromPiece);
             } else {
-                if (this.chessBoard.getPiece(this.getMoveString(toRow, toCol)) !== null &&
-                    this.chessBoard.getPiece(this.getMoveString(toRow, toCol)).color === this.playerColor
+                const piece = this.chessBoard.getPiece(this.getMoveString(toRow, toCol));
+
+                if (piece !== null &&
+                    piece.color === this.playerColor &&
+                    !this.pieceLocked(piece)
                 ) {
                     //select the cell
                     this.cellSelected.row = toRow;
@@ -300,7 +324,8 @@ export default {
 
     },
     components: {
-        ChessPiece
+        ChessPiece, 
+        TimeTracker
     },
     beforeMount() {
     },

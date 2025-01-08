@@ -15,7 +15,7 @@ export default {
         teamColor: {
             type: String,
             required: true
-        }
+        },
     },
     data: () => ({
     }),

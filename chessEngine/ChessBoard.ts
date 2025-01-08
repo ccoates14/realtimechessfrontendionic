@@ -35,20 +35,20 @@ export default class ChessBoard {
       };
     
       // Place white pieces
-      whitePieces.rooks.forEach((pos) => this.placePiece(new Rook('Rook', 'white', this), pos));
-      whitePieces.knights.forEach((pos) => this.placePiece(new Knight('Knight', 'white', this), pos));
-      whitePieces.bishops.forEach((pos) => this.placePiece(new Bishop('Bishop', 'white', this), pos));
-      this.placePiece(new Queen('Queen', 'white', this), whitePieces.queen);
-      this.placePiece(new King('King', 'white', this), whitePieces.king);
-      whitePieces.pawns.forEach((pos) => this.placePiece(new Pawn('Pawn', 'white', this), pos));
+      whitePieces.rooks.forEach((pos) => this.placePiece(new Rook('Rook', 'white', this, Rook.TIMEOUT), pos));
+      whitePieces.knights.forEach((pos) => this.placePiece(new Knight('Knight', 'white', this, Knight.TIMEOUT), pos));
+      whitePieces.bishops.forEach((pos) => this.placePiece(new Bishop('Bishop', 'white', this, Bishop.TIMEOUT), pos));
+      this.placePiece(new Queen('Queen', 'white', this, Queen.TIMEOUT), whitePieces.queen);
+      this.placePiece(new King('King', 'white', this, King.TIMEOUT), whitePieces.king);
+      whitePieces.pawns.forEach((pos) => this.placePiece(new Pawn('Pawn', 'white', this, Pawn.TIMEOUT), pos));
     
       // Place black pieces
-      blackPieces.rooks.forEach((pos) => this.placePiece(new Rook('Rook', 'black', this), pos));
-      blackPieces.knights.forEach((pos) => this.placePiece(new Knight('Knight', 'black', this), pos));
-      blackPieces.bishops.forEach((pos) => this.placePiece(new Bishop('Bishop', 'black', this), pos));
-      this.placePiece(new Queen('Queen', 'black', this), blackPieces.queen);
-      this.placePiece(new King('King', 'black', this), blackPieces.king);
-      blackPieces.pawns.forEach((pos) => this.placePiece(new Pawn('Pawn', 'black', this), pos));
+      blackPieces.rooks.forEach((pos) => this.placePiece(new Rook('Rook', 'black', this, Rook.TIMEOUT), pos));
+      blackPieces.knights.forEach((pos) => this.placePiece(new Knight('Knight', 'black', this, Knight.TIMEOUT), pos));
+      blackPieces.bishops.forEach((pos) => this.placePiece(new Bishop('Bishop', 'black', this, Bishop.TIMEOUT), pos));
+      this.placePiece(new Queen('Queen', 'black', this, Queen.TIMEOUT), blackPieces.queen);
+      this.placePiece(new King('King', 'black', this, King.TIMEOUT), blackPieces.king);
+      blackPieces.pawns.forEach((pos) => this.placePiece(new Pawn('Pawn', 'black', this, Pawn.TIMEOUT), pos));
     }
   
     placePiece(piece: ChessPiece | null, position: string) {

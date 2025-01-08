@@ -1,7 +1,7 @@
 import ChessBoard from "../ChessBoard";
 
 export abstract class ChessPiece {
-    constructor(public name: string, public color: string, public board: ChessBoard, public hasMoved: boolean = false) {
+    constructor(public name: string, public color: string, public board: ChessBoard, public timeout: number, public hasMoved: boolean = false) {
     }
 
     public isValidMove(_: string, end: string) {
