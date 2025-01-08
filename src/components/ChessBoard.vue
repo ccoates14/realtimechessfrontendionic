@@ -22,7 +22,6 @@
         </div>
     </div>
 </template>
-
 <script>
 import axios from 'axios';
 import ChessPiece from '@/components/ChessPiece.vue';
@@ -32,30 +31,6 @@ import ConnectionState from '../ConnectionState.js'
 export default {
     name: 'ChessBoard',
     data: () => ({
-        // piecesByNumbers: {
-        //     1: 'rook',
-        //     2: 'knight',
-        //     3: 'bishop',
-        //     4: 'queen',
-        //     5: 'king',
-        //     6: 'pawn',
-        //     7: 'rook',
-        //     8: 'knight',
-        //     9: 'bishop',
-        //     10: 'queen',
-        //     11: 'king',
-        //     12: 'pawn'
-        // },
-        // board: [
-        //     [1, 2, 3, 4, 5, 3, 2, 1],
-        //     [6, 6, 6, 6, 6, 6, 6, 6],
-        //     [0, 0, 0, 0, 0, 0, 0, 0],
-        //     [0, 0, 0, 0, 0, 0, 0, 0],
-        //     [0, 0, 0, 0, 0, 0, 0, 0],
-        //     [0, 0, 0, 0, 0, 0, 0, 0],
-        //     [12, 12, 12, 12, 12, 12, 12, 12],
-        //     [7, 8, 9, 10, 11, 9, 8, 7]
-        // ],
         chessBoard: new ChessBoard(),
         playerId: null,
         gameId: null,
@@ -223,8 +198,6 @@ export default {
                 type
             });
 
-            console.log('sending')
-            console.log(body)
             this.socket.send(body);
         },
         connectToQueue() {
@@ -251,6 +224,8 @@ export default {
                     } else {
                         this.playerColor = response.data.player2.color;
                     }
+
+                    this.$emit('teamColor', this.playerColor);
 
                     this.socket = new WebSocket(`ws://localhost:3000/`);
 

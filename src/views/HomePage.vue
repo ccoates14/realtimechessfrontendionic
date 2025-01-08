@@ -3,6 +3,9 @@
     <ion-header :translucent="true">
       <ion-toolbar>
         <ion-title>Realtime Chess</ion-title>
+        <div slot="start">
+          <strong>Team {{ teamColor }}</strong>
+        </div>
         <div slot="end">
           <strong>{{ queueStatus }}</strong>
         </div>
@@ -17,7 +20,7 @@
       </ion-header>
 
       <div id="container">
-        <chess-board class="chess-board" @queueStatus="queueStatusHandler"/>
+        <chess-board class="chess-board" @queueStatus="queueStatusHandler" @teamColor="teamColorHandler"/>
       </div>
     </ion-content>
   </ion-page>
@@ -35,12 +38,16 @@ export default {
   },
   data() {
     return {
-      queueStatus: 'Waiting for server to connect...'
+      queueStatus: 'Waiting for server to connect...',
+      teamColor: ''
     }
   },
   methods: {
     queueStatusHandler(status: any) {
       this.queueStatus = status;
+    },
+    teamColorHandler(color: any) {
+      this.teamColor = color;
     }
   }
 }

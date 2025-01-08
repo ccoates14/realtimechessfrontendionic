@@ -139,8 +139,6 @@ wss.on('connection', (ws) => {
                 if (opponent.socket === null) {
                     ws.send(JSON.stringify({ type: 'wait' }));
                 } else {
-                    console.log('Sending move to opponent');
-                    console.log({ type, move });
                     opponent.socket.send(JSON.stringify({ type, move }));
                     ws.send(JSON.stringify({ type: 'success' }));
                 }
