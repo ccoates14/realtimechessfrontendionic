@@ -27,6 +27,7 @@
                             v-if="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)) !== null"
                             :name="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)).name.toLowerCase()"
                             :teamColor="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)).color.toLowerCase()"
+                            :localhost="isLocalHost"
                             class="centered-piece"
                         />
                         <TimeTracker :duration="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)).timeout" 
@@ -79,6 +80,17 @@ export default {
         isBlackTeam() {
             return this.playerColor === 'black';
         },
+        isLocalHost() {
+            const hostname = window.location.hostname;
+            return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '';
+        },
+        backendUrl() {
+            if (this.isLocalHost) {
+                return 'http://localhost:3000';
+            }
+
+            return 'https://realtimechessbackendionic.onrender.com'
+        }
     },
     methods: {
         afterPieceUnlock(piece, customTimeout=null) {
@@ -280,7 +292,7 @@ export default {
 
             const queryParam = `?playerId=${this.playerId}`;
 
-            axios.get(`http://localhost:3000/queue${queryParam}`).then((response) => {
+            axios.get(this.backendUrl + `/queue${queryParam}`).then((response) => {
                 console.log(response);  
                 if (response.data.status == 'wait') {
                     this.$emit('queueStatus', 'Waiting for opponent');
@@ -299,7 +311,7 @@ export default {
 
                     this.$emit('teamColor', this.playerColor);
 
-                    this.socket = new WebSocket(`ws://localhost:3000/`);
+                    this.socket = new WebSocket(`ws://` + this.backendUrl);
 
                     this.socket.addEventListener('open', () => {
                         console.log('WebSocket connection opened');
@@ -346,7 +358,7 @@ export default {
         }
 
         // connect to the server and queue for game
-        axios.put('http://localhost:3000/queue').then((response) => {
+        axios.put(this.backendUrl + '/queue').then((response) => {
             console.log(response);
             this.playerId = response.data.playerId;
             this.$emit('queueStatus', 'Connected, adding to queue');

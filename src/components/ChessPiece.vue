@@ -16,12 +16,17 @@ export default {
             type: String,
             required: true
         },
+        localhost: {
+            type: Boolean,
+            required: false
+        }
     },
     data: () => ({
     }),
     computed: {
         pieceImage() {
-            //https://storage.cloud.google.com/realtimechess/assets/images/blackbishop.png
+            if (this.localhost) return `images/${this.teamColor}${this.name}.png`;
+
             return `https://storage.cloud.google.com/realtimechess/assets/images/${this.teamColor}${this.name}.png`;
         }
     },
