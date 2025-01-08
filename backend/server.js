@@ -15,13 +15,6 @@ const games = new Map();
 const socketsToGame = new Map();
 let queueBeingCleaned = false;
 
-// Serve static files from the 'dist' directory
-app.use(express.static(path.join(__dirname, '../dist')));
-
-// Catch-all route to serve the Vue app (for handling client-side routing)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
-});
 
 //later we can make it so it removes dead queue
 
@@ -258,3 +251,11 @@ function getSecondsInQueue(playerId) {
 const FIVE_MINUTES = 5 * 60 * 1000;
 
 setInterval(cleanQueue, FIVE_MINUTES);
+
+// Serve static files from the 'dist' directory
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Catch-all route to serve the Vue app (for handling client-side routing)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+});
