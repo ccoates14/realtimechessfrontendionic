@@ -101,7 +101,7 @@ app.get('/queue/length', (req, res) => {
 const server = http.createServer(app);
 
 // Initialize WebSocket server
-const wss = new WebSocket.Server({port: 8080});
+const wss = new WebSocket.Server({ server });
 
 // WebSocket connection logic
 wss.on('connection', (ws) => {
