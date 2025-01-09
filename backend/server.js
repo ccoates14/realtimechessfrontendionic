@@ -1,5 +1,5 @@
 const express = require('express');
-const https = require('https');
+const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
@@ -98,7 +98,7 @@ app.get('/queue/length', (req, res) => {
 
 
 // Create HTTP server
-const server = https.createServer(app);
+const server = http.createServer(app);
 
 // Initialize WebSocket server
 const wss = new WebSocket.Server({port: 8080});
@@ -246,7 +246,6 @@ function cleanQueue() {
 function getSecondsInQueue(playerId) {
     return (new Date() - playersInQueue.get(playerId)) / 1000;
 }
-
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 

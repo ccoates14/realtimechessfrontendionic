@@ -27,7 +27,6 @@
                             v-if="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)) !== null"
                             :name="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)).name.toLowerCase()"
                             :teamColor="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)).color.toLowerCase()"
-                            :localhost="isLocalHost"
                             class="centered-piece"
                         />
                         <TimeTracker :duration="chessBoard.getPiece(getCellDisplayPosition(getDisplayRow(row), col)).timeout" 
