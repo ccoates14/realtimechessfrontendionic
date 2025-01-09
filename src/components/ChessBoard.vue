@@ -353,6 +353,8 @@ export default {
         TimeTracker
     },
     beforeMount() {
+        const message = "This is realtime chess, in realtime chess there are no turns, there is no checkmate or check, kill the opposing team king.";
+        confirm(message);
     },
     mounted() {
         if (this.connectionState !== ConnectionState.GET_CONNECTION) {
@@ -379,8 +381,20 @@ export default {
             this.socket.close();
         }
     },
-    watch() {
+    watch: {
+        winners(newVal, oldVal) {
+            if (newVal.length > 0) {
+                let winnerMessage = "The winner is ";
 
+                newVal.forEach(w => {
+                    winnerMessage += w;
+                });
+
+                winnerMessage += ". Please refresh page to restart game."
+
+                confirm(winnerMessage);
+            }
+        }
     }
 }
 </script>
