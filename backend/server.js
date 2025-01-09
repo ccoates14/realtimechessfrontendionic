@@ -24,6 +24,7 @@ app.put('/queue', (req, res) => {
     const playerId = uuidv4();
     playerQueue.push(playerId);
     playersInQueue.set(playerId, new Date());
+    console.log('creating player id and placing in queue')
     res.json({ status: 'success', playerId });
 });
 
@@ -31,7 +32,7 @@ app.put('/queue', (req, res) => {
 app.get('/queue', (req, res) => {
     const playerId = req.query.playerId;
     let wait = true
-
+    console.log('request to match player')
     if (!queueBeingCleaned) {
         if (playersInGame.has(playerId)) {
             const gameId = playersInGame.get(playerId);
@@ -40,6 +41,7 @@ app.get('/queue', (req, res) => {
             const player2 = game.player2.id;
 
             wait = false
+            console.log('matched both players')
             res.json({
                 status: 'success', gameId: gameId, player1: { id: player1, color: 'white' },
                 player2: { id: player2, color: 'black' },
@@ -77,6 +79,7 @@ app.get('/queue', (req, res) => {
             playersInGame.set(mainPlayer, gameId);
             playersInGame.set(opponent, gameId);
 
+            console.log('matched both players....')
             wait = false
             res.json({
                 status: 'success', gameId: gameId, player1: { id: mainPlayer, color: 'white' },
@@ -86,6 +89,7 @@ app.get('/queue', (req, res) => {
     }
 
     if (wait) {
+        console.log('waiting to match player')
         playersInQueue.set(playerId, new Date());
         res.json({ status: 'wait' });
     }
@@ -130,6 +134,8 @@ wss.on('connection', (ws) => {
                 console.log('Invalid player ID');
             }
 
+            console.log('recieved socket message to join players')
+
             if (game.player1.socket !== null && game.player2.socket !== null) {
                 game.player1.socket.send(JSON.stringify({ type: 'start', color: game.player1.color }));
                 game.player2.socket.send(JSON.stringify({ type: 'start', color: game.player2.color }));
@@ -139,8 +145,10 @@ wss.on('connection', (ws) => {
                 const opponent = game.player1.id === playerId ? game.player2 : game.player1;
 
                 if (opponent.socket === null) {
+                    console.log('sending socket message for player to wait')
                     ws.send(JSON.stringify({ type: 'wait' }));
                 } else {
+                    console.log('proxy socket player message')
                     opponent.socket.send(JSON.stringify({ type, move }));
                     ws.send(JSON.stringify({ type: 'success' }));
                 }
@@ -173,6 +181,8 @@ wss.on('connection', (ws) => {
             if (opponent.socket !== null) {
                 opponent.socket.send(JSON.stringify({ type: 'disconnected' }));
             }
+
+            console.log('socket closed')
 
             socketsToGame.delete(socketHash);
             games.delete(gameId);

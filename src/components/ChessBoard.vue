@@ -88,7 +88,7 @@ export default {
             const { protocol, hostname } = window.location;
             const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
             const port = hostname === 'localhost' ? ':3000' : ''; // Use port 3001 for local development
-            return `${wsProtocol}//${hostname}${port}}`;
+            return `${wsProtocol}//${hostname}${port}`;
         }
     },
     methods: {
@@ -296,7 +296,7 @@ export default {
 
             const queryParam = `?playerId=${this.playerId}`;
 
-            axios.get(this.getApiUrl(`/queue${queryParam}`)).then((response) => {
+            axios.get(this.getApiUrl(`queue${queryParam}`)).then((response) => {
                 console.log(response);  
                 if (response.data.status == 'wait') {
                     this.$emit('queueStatus', 'Waiting for opponent');
@@ -353,8 +353,8 @@ export default {
         TimeTracker
     },
     beforeMount() {
-        const message = "This is realtime chess, in realtime chess there are no turns, there is no checkmate or check, kill the opposing team king.";
-        confirm(message);
+        // const message = "This is realtime chess, in realtime chess there are no turns, there is no checkmate or check, kill the opposing team king.";
+        // confirm(message);
     },
     mounted() {
         if (this.connectionState !== ConnectionState.GET_CONNECTION) {
@@ -363,7 +363,7 @@ export default {
         }
 
         // connect to the server and queue for game
-        axios.put(this.getApiUrl('/queue')).then((response) => {
+        axios.put(this.getApiUrl('queue')).then((response) => {
             console.log(response);
             this.playerId = response.data.playerId;
             this.$emit('queueStatus', 'Connected, adding to queue');
