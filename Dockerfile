@@ -2,7 +2,8 @@ FROM node:22
 
 COPY package*.json ./
 
-RUN npm install && npm run build
+RUN npm install
+RUN npm run build
 
 WORKDIR /backend
 
