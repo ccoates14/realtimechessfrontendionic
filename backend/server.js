@@ -135,9 +135,9 @@ wss.on('connection', (ws) => {
                 game.player2.socket.send(JSON.stringify({ type: 'start', color: game.player2.color }));
             }
         } else {
-            const opponent = game.player1.id === playerId ? game.player2 : game.player1;
-
             try {
+                const opponent = game.player1.id === playerId ? game.player2 : game.player1;
+
                 if (opponent.socket === null) {
                     ws.send(JSON.stringify({ type: 'wait' }));
                 } else {
